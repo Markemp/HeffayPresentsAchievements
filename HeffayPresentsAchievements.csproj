@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>OcelotAchievements</RootNamespace>
+    <RootNamespace>HeffayPresentsAchievements</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

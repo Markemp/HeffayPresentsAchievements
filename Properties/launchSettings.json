@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "OcelotAchievements": {
+    "HeffayPresentsAchievements": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,
