@@ -9,6 +9,7 @@ namespace HeffayPresentsAchievements
         public AutoMapperProfile()
         {
             CreateMap<Achievement, GetAchievementDto>();
+            CreateMap<AddAchievementDto, Achievement>();
         }
     }
 }
