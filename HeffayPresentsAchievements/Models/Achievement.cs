@@ -13,6 +13,6 @@ namespace HeffayPresentsAchievements.Models
         public DateTime DateCreated { get; set;} = DateTime.UtcNow;
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
         public AchievementType AchievementType { get; set; } = AchievementType.Visible;
-        public Game Game { get; set; }
+        public Game? Game { get; set; }
     }
 }
