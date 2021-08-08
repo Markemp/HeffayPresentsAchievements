@@ -3,41 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using HeffayPresentsAchievements.Data;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HeffayPresentsAchievements.Services.AchievementService
 {
     public class AchievementService : IAchievementService
     {
-        private static readonly List<Achievement> achievements = new()
-        {
-            new Achievement { Id = new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7"), Name = "First achievement" },
-            new Achievement { Id = new Guid("7d06a5de-bd52-439b-bfc5-7fbd7391e340"), Name = "Second achievement" }
-        };
         private readonly IMapper _mapper;
+        private readonly DataContext _context;
 
-        public AchievementService(IMapper mapper)
+        public AchievementService(IMapper mapper, DataContext context)
         {
             _mapper = mapper;
-        }
-        
-        public async Task<ServiceResponse<List<GetAchievementDto>>> AddAchievement(AddAchievementDto newAchievement)
-        {
-            var response = new ServiceResponse<List<GetAchievementDto>>();
-            Achievement achievement = _mapper.Map<Achievement>(newAchievement);
-            achievement.Id = Guid.NewGuid();
-            achievement.LastUpdated = DateTime.UtcNow;
-            achievements.Add(achievement);
-            response.Data = achievements.Select(a => _mapper.Map<GetAchievementDto>(a)).ToList();
-            return response;
+            _context = context;
         }
 
         public async Task<ServiceResponse<List<GetAchievementDto>>> GetAllAchievements()
         {
+            var dbAchievements = await _context.Achievements.ToListAsync();
             var response = new ServiceResponse<List<GetAchievementDto>>
             {
-                Data = achievements.Where(a => a.IsDeleted == false).Select(a => _mapper.Map<GetAchievementDto>(a)).ToList()
+                Data = dbAchievements.Where(a => a.IsDeleted == false).Select(a => _mapper.Map<GetAchievementDto>(a)).ToList()
             };
             return response;
         }
@@ -45,7 +34,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
         public async Task<ServiceResponse<GetAchievementDto>> GetAchievementById(Guid id)
         {
             var response = new ServiceResponse<GetAchievementDto>();
-            var achievement = _mapper.Map<GetAchievementDto>(achievements.FirstOrDefault(a => a.Id.Equals(id)));
+            var achievement = await _context.Achievements.FirstOrDefaultAsync(a => a.Id.Equals(id));
 
             if (achievement == null)
             {
@@ -54,9 +43,21 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             }
             else
             {
-                response.Data = achievement;
+                response.Data = _mapper.Map<GetAchievementDto>(_context.Achievements.FirstOrDefault(a => a.Id.Equals(id)));
             }
 
+            return response;
+        }
+
+        public async Task<ServiceResponse<List<GetAchievementDto>>> AddAchievement(AddAchievementDto newAchievement)
+        {
+            var response = new ServiceResponse<List<GetAchievementDto>>();
+            Achievement achievement = _mapper.Map<Achievement>(newAchievement);
+            achievement.Id = Guid.NewGuid();
+            achievement.LastUpdated = DateTime.UtcNow;
+            _context.Achievements.Add(achievement);
+            await _context.SaveChangesAsync();
+            response.Data = await _context.Achievements.Select(a => _mapper.Map<GetAchievementDto>(a)).ToListAsync();
             return response;
         }
 
@@ -65,7 +66,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             var response = new ServiceResponse<GetAchievementDto>();
             try
             {
-                Achievement? achievement = achievements.FirstOrDefault(a => a.Id.Equals(updatedAchievement.Id));
+                Achievement? achievement = await _context.Achievements.FirstOrDefaultAsync(a => a.Id.Equals(updatedAchievement.Id));
 
                 if (achievement != null)
                 {
@@ -98,8 +99,9 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             var response = new ServiceResponse<List<GetAchievementDto>>();
             try
             {
-                var numberOfRecordsRemoved = achievements.RemoveAll(a => a.Id.Equals(id));
-                response.Message = $"Removed {numberOfRecordsRemoved} achievements.";
+                var achievements = _context.Achievements.Where(a => a.Id.Equals(id));
+                _context.Achievements.RemoveRange(achievements);
+                await _context.SaveChangesAsync();
                 response.Data = _mapper.Map<List<GetAchievementDto>>(achievements.Where(a => a.IsDeleted == false));
             }
             catch (Exception ex)
