@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
+using HeffayPresentsAchievements.Services.Repository;
 using Microsoft.EntityFrameworkCore;
 
 namespace HeffayPresentsAchievements.Services.AchievementService
@@ -12,17 +13,17 @@ namespace HeffayPresentsAchievements.Services.AchievementService
     public class AchievementService : IAchievementService
     {
         private readonly IMapper _mapper;
-        private readonly IRepository _repository;
+        private readonly IRepository<Achievement> _repository;
 
-        public AchievementService(IMapper mapper, IRepository repo)
+        public AchievementService(IMapper mapper, IRepository<Achievement> repo)
         {
             _mapper = mapper;
             _repository = repo;
         }
 
-        public async Task<ServiceResponse<List<GetAchievementDto>>> GetAllAchievements()
+        public ServiceResponse<List<GetAchievementDto>> GetAllAchievements()
         {
-            var dbAchievements = await _repository.Get.ToListAsync();
+            var dbAchievements = _repository.GetAll();
             var response = new ServiceResponse<List<GetAchievementDto>>
             {
                 Data = dbAchievements.Where(a => a.IsDeleted == false).Select(a => _mapper.Map<GetAchievementDto>(a)).ToList()
@@ -30,10 +31,10 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             return response;
         }
 
-        public async Task<ServiceResponse<GetAchievementDto>> GetAchievementById(Guid id)
+        public ServiceResponse<GetAchievementDto> GetAchievementById(Guid id)
         {
             var response = new ServiceResponse<GetAchievementDto>();
-            var achievement = await _repository.Achievements.FirstOrDefaultAsync(a => a.Id.Equals(id));
+            var achievement = _repository.Get(id);
 
             if (achievement == null)
             {
@@ -54,9 +55,8 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             Achievement achievement = _mapper.Map<Achievement>(newAchievement);
             achievement.Id = Guid.NewGuid();
             achievement.LastUpdated = DateTime.UtcNow;
-            _repository.Achievements.Add(achievement);
-            await _repository.SaveChangesAsync();
-            response.Data = await _repository.Achievements.Select(a => _mapper.Map<GetAchievementDto>(a)).ToListAsync();
+            await _repository.Add(achievement);
+            response.Data = _repository.GetAll().Select(a => _mapper.Map<GetAchievementDto>(a));
             return response;
         }
 
