@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using HeffayPresentsAchievements.Services.AchievementService;
 using HeffayPresentsAchievements.Data;
 using Microsoft.EntityFrameworkCore;
+using HeffayPresentsAchievements.Services.Repository;
 
 namespace HeffayPresentsAchievements
 {
@@ -25,12 +26,15 @@ namespace HeffayPresentsAchievements
             services.AddDbContext<DataContext>(options => 
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DevConnection")));
+            
             services.AddControllers();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "HeffayPresentsAchievements", Version = "v1" });
             });
             services.AddAutoMapper(typeof(Startup));
+            services.AddScoped<IRepository, Repository>();
             services.AddScoped<IAchievementService, AchievementService>();
         }
 
