@@ -1,5 +1,4 @@
 ﻿using HeffayPresentsAchievements.Data;
-using HeffayPresentsAchievements.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -19,12 +18,12 @@ namespace HeffayPresentsAchievements.Services.Repository
             entities = context.Set<T>();
         }
 
-        public IEnumerable<T> GetAll()
+        public async Task<IEnumerable<T>> GetAll()
         {
             return entities.AsEnumerable();
         }
 
-        public T Get(Guid Id)
+        public async Task<T> Get(Guid Id)
         {
             var result = entities.SingleOrDefault(a => a.Id == Id);
             if (result == null)
@@ -56,15 +55,22 @@ namespace HeffayPresentsAchievements.Services.Repository
             return result;
         }
 
-        public async Task<int> Remove(T record)
+        public async Task Update(T record)
         {
-            if (record == null)
+            _context.Update(record);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> Remove(Guid id)
+        {
+            var record = entities.FirstOrDefault(a => a.Id.Equals(id));
+            if (record != null)
             {
-                throw new ArgumentNullException(nameof(record));
+                entities.Remove(record);
+                return await _context.SaveChangesAsync();
             }
-            entities.Remove(record);
-            var result = await _context.SaveChangesAsync();
-            return result;
+           
+            return 0;
         }
 
         public async Task<int> RemoveRange(IEnumerable<T> records)
