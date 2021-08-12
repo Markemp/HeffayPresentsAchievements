@@ -1,6 +1,3 @@
-using HeffayPresentsAchievements.Services.Repository;
-using System;
-
 namespace HeffayPresentsAchievements.Models
 {
     public class Achievement : BaseEntity

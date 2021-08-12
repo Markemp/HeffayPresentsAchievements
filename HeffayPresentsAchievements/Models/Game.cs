@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace HeffayPresentsAchievements.Models
 {
-    public class Game
+    public class Game : BaseEntity
     {
-        public Guid Id { get; set; }
         public string? Name { get; set; }
         public List<Achievement>? Achievements { get; set; }
     }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HeffayPresentsAchievements.Services.Repository
+namespace HeffayPresentsAchievements.Models
 {
     public class BaseEntity
     {

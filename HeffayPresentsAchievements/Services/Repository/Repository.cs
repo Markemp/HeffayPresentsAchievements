@@ -1,4 +1,5 @@
 ﻿using HeffayPresentsAchievements.Data;
+using HeffayPresentsAchievements.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

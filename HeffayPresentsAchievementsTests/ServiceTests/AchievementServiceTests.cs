@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
 using HeffayPresentsAchievements;
-using HeffayPresentsAchievements.Data;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Services.AchievementService;
 using HeffayPresentsAchievements.Services.Repository;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -19,9 +16,8 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
     [TestClass]
     public class AchievementServiceTests
     {
-        private IMapper mapper;
-        private readonly Mock<IRepository<Achievement>> repo = new Mock<IRepository<Achievement>>();
-        readonly List<Achievement> entities = new();
+        private IMapper? mapper;
+        private readonly Mock<IRepository<Achievement>> repo = new();
 
         [TestInitialize]
         public void Initialize()
@@ -29,7 +25,6 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
             var profile = new AutoMapperProfile();
             var configuration = new MapperConfiguration(cfg => cfg.AddProfile(profile));
             mapper = new Mapper(configuration);
-            //entities.AddRange(Seed());
         }
 
         [TestMethod]
@@ -37,7 +32,7 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
         {
             repo.Setup(p => p.GetAll()).Returns(Seed());
 
-            var service = new AchievementService(mapper, repo.Object);
+            var service = new AchievementService(mapper!, repo.Object);
 
             var actualServiceResponse = await service.GetAllAchievements();
 
@@ -52,6 +47,42 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
             Assert.AreEqual(expectedServiceResponse.Data.Count, actualServiceResponse.Data.Count);
             Assert.AreEqual(expectedServiceResponse.Data[0].Name, actualServiceResponse.Data[0].Name);
             Assert.AreEqual(expectedServiceResponse.Data[0].Id, actualServiceResponse.Data[0].Id);
+        }
+
+        [TestMethod]
+        public async Task GetAllAchievements_NoAchievementsReturned()
+        {
+            repo.Setup(p => p.GetAll()).Returns(EmptyAchievementsList());
+
+            var expectedServiceResponse = new ServiceResponse<List<GetAchievementDto>>
+            {
+                Success = true,
+                Message = null,
+                Data = new List<GetAchievementDto>()
+            };
+
+            var service = new AchievementService(mapper!, repo.Object);
+
+            var actualServiceResponse = await service.GetAllAchievements();
+
+            Assert.IsNotNull(actualServiceResponse.Data);
+            Assert.IsTrue(actualServiceResponse.Success);
+            Assert.AreEqual(expectedServiceResponse.Data.Count, actualServiceResponse.Data.Count);
+        }
+
+        [TestMethod]
+        public async Task GetAchievementById_Successful()
+        {
+            GetAchievementDto expectedAchievementDto = mapper!.Map<GetAchievementDto>(Seed().Result.ToList()[0]);
+
+            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()!));
+            
+            var service = new AchievementService(mapper!, repo.Object);
+
+            var actualServiceResponse = await service.GetAchievementById(new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7"));
+
+            Assert.IsNotNull(actualServiceResponse.Data);
+            Assert.IsTrue(actualServiceResponse.Success);
         }
 
         //[TestMethod]
@@ -272,63 +303,12 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
 
             return achievements.AsEnumerable();
         }
-    }
 
-    public interface IDbContextGenerator
-    {
-        IMyDbContext GenerateMyDbContext();
-    }
-
-    public class DbContextGenerator : IDbContextGenerator
-    {
-        private readonly IOptions<AppSettings> options;
-
-        public DbContextGenerator(IOptions<AppSettings> options)
+        private async static Task<IEnumerable<Achievement>> EmptyAchievementsList()
         {
-            this.options = options;
-        }
-
-        public IMyDbContext GenerateMyDbContext()
-        {
-            return new MyDbContext(options.Value.ConnString);
+            var achievements = new List<Achievement>();
+            return achievements.AsEnumerable();
         }
     }
 
-    public interface IMyDbContext : IDisposable
-    {
-        int SaveChanges();
-        public DbSet<Achievement>? Achievements { get; set; }
-        public DbSet<Game>? Games { get; set; }
-    }
-
-    public class MyDbContext : DbContext, IMyDbContext
-    {
-        private readonly string _connectionString;
-
-        public DbSet<Achievement>? Achievements { get; set; }
-        public DbSet<Game>? Games { get; set; }
-
-        public MyDbContext(string connectionString) : base()
-        {
-            _connectionString = connectionString;
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer(_connectionString);
-            }
-        }
-
-        public override int SaveChanges()
-        {
-            return base.SaveChanges();
-        }
-    }
-
-    public class AppSettings
-    {
-        public string ConnString { get; set; }
-    }
 }
