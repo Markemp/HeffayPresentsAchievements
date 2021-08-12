@@ -34,7 +34,7 @@ namespace HeffayPresentsAchievements
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "HeffayPresentsAchievements", Version = "v1" });
             });
             services.AddAutoMapper(typeof(Startup));
-            services.AddScoped<IRepository, Repository>();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IAchievementService, AchievementService>();
         }
 

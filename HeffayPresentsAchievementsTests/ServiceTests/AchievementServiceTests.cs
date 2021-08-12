@@ -4,6 +4,7 @@ using HeffayPresentsAchievements.Data;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Services.AchievementService;
+using HeffayPresentsAchievements.Services.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -19,8 +20,8 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
     public class AchievementServiceTests
     {
         private IMapper mapper;
-        readonly List<Achievement> entities = new List<Achievement>();
-        IDbContextGenerator contextGenerator;
+        private readonly Mock<IRepository<Achievement>> repo = new Mock<IRepository<Achievement>>();
+        readonly List<Achievement> entities = new();
 
         [TestInitialize]
         public void Initialize()
@@ -28,16 +29,15 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
             var profile = new AutoMapperProfile();
             var configuration = new MapperConfiguration(cfg => cfg.AddProfile(profile));
             mapper = new Mapper(configuration);
-            entities.AddRange(Seed());
-
+            //entities.AddRange(Seed());
         }
 
         [TestMethod]
         public async Task GetAllAchievements_ShouldReturnAllAchievements()
         {
-            myDbMoq.Setup(p => p.Achievements).Returns(GetQueryableMockDbSet<Achievement>(entities));
+            repo.Setup(p => p.GetAll()).Returns(Seed());
 
-            var service = new AchievementService(mapper, myDbMoq.Object);
+            var service = new AchievementService(mapper, repo.Object);
 
             var actualServiceResponse = await service.GetAllAchievements();
 
@@ -48,6 +48,7 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
                 Message = null
             };
 
+            Assert.IsNotNull(actualServiceResponse.Data);
             Assert.AreEqual(expectedServiceResponse.Data.Count, actualServiceResponse.Data.Count);
             Assert.AreEqual(expectedServiceResponse.Data[0].Name, actualServiceResponse.Data[0].Name);
             Assert.AreEqual(expectedServiceResponse.Data[0].Id, actualServiceResponse.Data[0].Id);
@@ -162,24 +163,36 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
                     PercentageUnlocked = 0f,
                     Points = 10
                 },
+                new GetAchievementDto
+                {
+                    Id = new Guid("7d06a5de-bd52-439b-bfc5-7fbd7391e341"),
+                    Name = "Third achievement",
+                    AchievementType = AchievementType.Visible,
+                    DateCreated = DateTime.UtcNow,
+                    IsDeleted = false,
+                    IsIncrementalAchievement = false,
+                    LastUpdated = DateTime.UtcNow,
+                    PercentageUnlocked = 0f,
+                    Points = 10
+                },
+                new GetAchievementDto
+                {
+                    Id = new Guid("7d06a5de-bd52-439b-bfc5-7fbd7391e343"),
+                    Name = "Fifth achievement (hidden)",
+                    AchievementType = AchievementType.Hidden,
+                    DateCreated = DateTime.UtcNow,
+                    IsDeleted = false,
+                    IsIncrementalAchievement = false,
+                    LastUpdated = DateTime.UtcNow,
+                    PercentageUnlocked = 0f,
+                    Points = 10
+                }
             };
 
             return achievements;
         }
 
-        public static DbSet<T> GetQueryableMockDbSet<T>(List<T> sourceList) where T : class
-        {
-            var queryable = sourceList.AsQueryable();
-            var dbSet = new Mock<DbSet<T>>();
-            dbSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(queryable.Provider);
-            dbSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryable.Expression);
-            dbSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
-            dbSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => queryable.GetEnumerator());
-            dbSet.Setup(d => d.Add(It.IsAny<T>())).Callback<T>((s) => sourceList.Add(s));
-            return dbSet.Object;
-        }
-
-        private static List<Achievement> Seed()
+        private async static Task<IEnumerable<Achievement>> Seed()
         {
             var achievements = new List<Achievement>
             {
@@ -257,7 +270,7 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
                 }
             };
 
-            return achievements;
+            return achievements.AsEnumerable();
         }
     }
 

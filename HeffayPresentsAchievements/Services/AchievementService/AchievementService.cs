@@ -6,7 +6,6 @@ using AutoMapper;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Services.Repository;
-using Microsoft.EntityFrameworkCore;
 
 namespace HeffayPresentsAchievements.Services.AchievementService
 {
@@ -65,7 +64,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             var response = new ServiceResponse<GetAchievementDto>();
             try
             {
-                Achievement? achievement = await _repository.Get(update);
+                Achievement achievement = await _repository.Get(updatedAchievement.Id);
 
                 if (achievement != null)
                 {
@@ -75,6 +74,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
                     achievement.Points = updatedAchievement.Points ?? achievement.Points;
                     achievement.AchievementType = updatedAchievement.AchievementType ?? achievement.AchievementType;
                     achievement.LastUpdated = DateTime.UtcNow;
+                    await _repository.Update(achievement);
 
                     response.Data = _mapper.Map<GetAchievementDto>(achievement);
                 }
