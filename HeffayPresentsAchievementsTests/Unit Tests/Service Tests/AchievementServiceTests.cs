@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace HeffayPresentsAchievementsTests.ControllersTests
+namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
 {
     [TestClass]
     public class AchievementServiceTests
@@ -30,10 +30,9 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
         [TestMethod]
         public async Task GetAllAchievements_ShouldReturnAllAchievements()
         {
-            repo.Setup(p => p.GetAll()).Returns(Seed());
+            repo.Setup(p => p.GetAll()).Returns(Seed()!);
 
             var service = new AchievementService(mapper!, repo.Object);
-
             var actualServiceResponse = await service.GetAllAchievements();
 
             var expectedServiceResponse = new ServiceResponse<List<GetAchievementDto>>
@@ -52,22 +51,26 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
         [TestMethod]
         public async Task GetAllAchievements_NoAchievementsReturned()
         {
-            repo.Setup(p => p.GetAll()).Returns(EmptyAchievementsList());
-
-            var expectedServiceResponse = new ServiceResponse<List<GetAchievementDto>>
-            {
-                Success = true,
-                Message = null,
-                Data = new List<GetAchievementDto>()
-            };
+            repo.Setup(p => p.GetAll()).Returns(EmptyAchievementsList()!);
 
             var service = new AchievementService(mapper!, repo.Object);
-
             var actualServiceResponse = await service.GetAllAchievements();
 
-            Assert.IsNotNull(actualServiceResponse.Data);
+            Assert.IsNull(actualServiceResponse.Data);
             Assert.IsTrue(actualServiceResponse.Success);
-            Assert.AreEqual(expectedServiceResponse.Data.Count, actualServiceResponse.Data.Count);
+        }
+
+        [TestMethod]
+        public async Task GetAllAchievements_RepoUnavailable_FailedServiceResponse()
+        {
+            repo.Setup(p => p.GetAll()).Throws(new Exception("Test message"));
+
+            var service = new AchievementService(mapper!, repo.Object);
+            var actualServiceResponse = await service.GetAllAchievements();
+
+            Assert.IsNull(actualServiceResponse.Data);
+            Assert.AreEqual("Test message", actualServiceResponse.Message);
+            Assert.IsFalse(actualServiceResponse.Success);
         }
 
         [TestMethod]
@@ -86,17 +89,18 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
         }
 
         [TestMethod]
-        public async Task GetAchievementById_AchievementNotFound()
+        public async Task GetAchievementById_AchievementNotFound_SuccessFalseAndNotFoundMessage()
         {
-            repo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new ApplicationException());
-            var id = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
+            const string badGuid = "baddbb1c-7b7b-41c4-9e84-410f17b64bad";
+            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Achievement?>(null));
+            var id = new Guid(badGuid);
 
             var service = new AchievementService(mapper!, repo.Object);
 
             var actualServiceResponse = await service.GetAchievementById(id);
 
             Assert.IsFalse(actualServiceResponse.Success);
-            Assert.IsTrue(actualServiceResponse.Message!.Equals($"Error in the application."));
+            Assert.IsTrue(actualServiceResponse.Message!.Equals($"Achievement {badGuid} not found."));
             Assert.IsNull(actualServiceResponse.Data);
         }
 
@@ -202,9 +206,9 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
             return achievements;
         }
 
-        private async static Task<IEnumerable<Achievement>> Seed()
+        private async static Task<IEnumerable<Achievement?>> Seed()
         {
-            var achievements = new List<Achievement>
+            var achievements = new List<Achievement?>
             {
                 new Achievement
                 {
@@ -283,9 +287,9 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
             return achievements.AsEnumerable();
         }
 
-        private async static Task<IEnumerable<Achievement>> EmptyAchievementsList()
+        private async static Task<IEnumerable<Achievement?>> EmptyAchievementsList()
         {
-            var achievements = new List<Achievement>();
+            var achievements = new List<Achievement?>();
             return achievements.AsEnumerable();
         }
     }

@@ -22,11 +22,25 @@ namespace HeffayPresentsAchievements.Services.AchievementService
 
         public async Task<ServiceResponse<List<GetAchievementDto>>> GetAllAchievements()
         {
-            var dbAchievements = await _repository.GetAll();
-            var response = new ServiceResponse<List<GetAchievementDto>>
+            var response = new ServiceResponse<List<GetAchievementDto>>();
+
+            try
             {
-                Data = dbAchievements.Where(a => a.IsDeleted == false).Select(a => _mapper.Map<GetAchievementDto>(a)).ToList()
-            };
+                var dbAchievements = await _repository.GetAll();
+
+                if (dbAchievements.Any())
+                    response.Data = dbAchievements.Where(a => a != null && a.IsDeleted == false).Select(a => _mapper.Map<GetAchievementDto>(a)).ToList();
+                else
+                    response.Message = "No achievements found.";
+
+                return response;
+            } 
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                response.Success = false;
+            }
+
             return response;
         }
 
@@ -36,7 +50,15 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             try
             {
                 var achievement = await _repository.Get(id);
-                response.Data = _mapper.Map<GetAchievementDto>(await _repository.Get(id));
+                if (achievement == null)
+                {
+                    response.Message = $"Achievement {id} not found.";
+                    response.Success = false;
+                }
+                else
+                {
+                    response.Data = _mapper.Map<GetAchievementDto>(await _repository.Get(id));
+                }
             }
             catch (ApplicationException ex)
             {
@@ -64,7 +86,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             var response = new ServiceResponse<GetAchievementDto>();
             try
             {
-                Achievement achievement = await _repository.Get(updatedAchievement.Id);
+                Achievement? achievement = await _repository.Get(updatedAchievement.Id);
 
                 if (achievement != null)
                 {

@@ -19,20 +19,14 @@ namespace HeffayPresentsAchievements.Services.Repository
             entities = context.Set<T>();
         }
 
-        public async Task<IEnumerable<T>> GetAll()
+        public async Task<IEnumerable<T?>> GetAll()
         {
             return entities.AsEnumerable();
         }
 
-        public async Task<T> Get(Guid Id)
+        public async Task<T?> Get(Guid Id)
         {
-            T? result = entities.SingleOrDefault(a => a.Id == Id);
-            // TODO:  If it's empty (not found), return null, not throw exception.
-            if (result == null)
-            {
-                throw new ApplicationException($"Unable to find record with Id of {Id}");
-            }
-            return result;
+            return entities.SingleOrDefault(a => a.Id == Id);
         }
 
         public async Task<int> Add(T record)

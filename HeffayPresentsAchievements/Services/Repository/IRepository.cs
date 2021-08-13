@@ -8,8 +8,8 @@ namespace HeffayPresentsAchievements.Services.Repository
     // https://www.c-sharpcorner.com/article/generic-repository-pattern-in-asp-net-core/
     public interface IRepository<T> where T : BaseEntity
     {
-        public Task<IEnumerable<T>> GetAll();
-        public Task<T> Get(Guid Id);
+        public Task<IEnumerable<T?>> GetAll();
+        public Task<T?> Get(Guid Id);
         public Task<int> Add(T entity);
         public Task<int> AddRange(IEnumerable<T> entities);
         public Task Update(T entity);

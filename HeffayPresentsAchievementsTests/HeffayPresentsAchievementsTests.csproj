@@ -20,4 +20,8 @@
     <ProjectReference Include="..\HeffayPresentsAchievements\HeffayPresentsAchievements.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Integration Tests\" />
+  </ItemGroup>
+
 </Project>
