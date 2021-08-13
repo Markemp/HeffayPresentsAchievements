@@ -27,6 +27,7 @@ namespace HeffayPresentsAchievements.Services.Repository
         public async Task<T> Get(Guid Id)
         {
             T? result = entities.SingleOrDefault(a => a.Id == Id);
+            // TODO:  If it's empty (not found), return null, not throw exception.
             if (result == null)
             {
                 throw new ApplicationException($"Unable to find record with Id of {Id}");

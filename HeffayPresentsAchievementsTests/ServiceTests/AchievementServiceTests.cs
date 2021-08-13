@@ -89,9 +89,9 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
         public async Task GetAchievementById_AchievementNotFound()
         {
             repo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new ApplicationException());
-                //.Returns(Task.FromResult<Achievement>(null));
-            var service = new AchievementService(mapper!, repo.Object);
             var id = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
+
+            var service = new AchievementService(mapper!, repo.Object);
 
             var actualServiceResponse = await service.GetAchievementById(id);
 
