@@ -85,41 +85,20 @@ namespace HeffayPresentsAchievementsTests.ControllersTests
             Assert.IsTrue(actualServiceResponse.Success);
         }
 
-        //[TestMethod]
-        //public async Task GetAchievementById_ReturnsCorrectAchievement()
-        //{
-        //    var service = new AchievementService(mapper, mockContext.Object);
-        //    var id = new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7");
+        [TestMethod]
+        public async Task GetAchievementById_AchievementNotFound()
+        {
+            repo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new ApplicationException());
+                //.Returns(Task.FromResult<Achievement>(null));
+            var service = new AchievementService(mapper!, repo.Object);
+            var id = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
-        //    var expectedServiceResponse = new ServiceResponse<GetAchievementDto>
-        //    {
-        //        Data = new GetAchievementDto
-        //        {
-        //            Name = "First achievement",
-        //            Id = new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7")
-        //        },
-        //        Success = true,
-        //        Message = null
-        //    };
+            var actualServiceResponse = await service.GetAchievementById(id);
 
-        //    var actualServiceResponse = await service.GetAchievementById(id);
-
-        //    Assert.AreEqual(expectedServiceResponse.Data.Name, actualServiceResponse.Data.Name);
-        //    Assert.AreEqual(expectedServiceResponse.Data.Id, actualServiceResponse.Data.Id);
-        //}
-
-        //[TestMethod]
-        //public async Task GetAchievementById_AchievementNotFound()
-        //{
-        //    var service = new AchievementService(mapper, mockContext.Object);
-        //    var id = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
-
-        //    var actualServiceResponse = await service.GetAchievementById(id);
-
-        //    Assert.IsFalse(actualServiceResponse.Success);
-        //    Assert.IsTrue(actualServiceResponse.Message.Equals($"Unable to find achievement {id}"));
-        //    Assert.IsNull(actualServiceResponse.Data);
-        //}
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.Equals($"Error in the application."));
+            Assert.IsNull(actualServiceResponse.Data);
+        }
 
         //[TestMethod]
         //public async Task AddAchievement_Success()

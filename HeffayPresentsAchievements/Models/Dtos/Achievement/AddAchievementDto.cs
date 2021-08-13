@@ -1,5 +1,4 @@
 ﻿using HeffayPresentsAchievements.Models;
-using System;
 
 namespace HeffayPresentsAchievements.Dtos.Achievement
 {

@@ -8,8 +8,9 @@ namespace HeffayPresentsAchievements
     {
         public AutoMapperProfile()
         {
-            CreateMap<Achievement, GetAchievementDto>();
-            CreateMap<AddAchievementDto, Achievement>();
+            CreateMap<Achievement, GetAchievementDto>().ReverseMap();
+            CreateMap<Achievement, AddAchievementDto>().ReverseMap();
+            CreateMap<Achievement, UpdateAchievementDto>().ReverseMap();
         }
     }
 }

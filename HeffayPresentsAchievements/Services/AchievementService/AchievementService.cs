@@ -33,18 +33,18 @@ namespace HeffayPresentsAchievements.Services.AchievementService
         public async Task<ServiceResponse<GetAchievementDto>> GetAchievementById(Guid id)
         {
             var response = new ServiceResponse<GetAchievementDto>();
-            var achievement = await _repository.Get(id);
-
-            if (achievement == null)
+            try
+            {
+                var achievement = await _repository.Get(id);
+                response.Data = _mapper.Map<GetAchievementDto>(await _repository.Get(id));
+            }
+            catch (ApplicationException ex)
             {
                 response.Success = false;
-                response.Message = $"Unable to find achievement {id}";
+                response.Data = null;
+                response.Message = ex.Message;
             }
-            else
-            {
-                response.Data = _mapper.Map<GetAchievementDto>(_repository.Get(id));
-            }
-
+            
             return response;
         }
 
