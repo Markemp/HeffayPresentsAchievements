@@ -18,7 +18,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
     {
         private IMapper? mapper;
         private readonly Mock<IRepository<Achievement>> repo = new();
-        private Guid badGuid = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
+        private Guid badGuid = new("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
         [TestInitialize]
         public void Initialize()
@@ -119,8 +119,11 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task AddAchievement_Success()
         {
+            repo.Setup(p => p.Add(It.IsAny<Achievement>())).Returns(Task.FromResult(1));
+            repo.Setup(p => p.GetAll()).Returns(Seed());
 
             var service = new AchievementService(mapper!, repo.Object);
+
             var newAchievement = new AddAchievementDto
             {
                 AchievementType = AchievementType.Visible,
@@ -132,8 +135,36 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
 
             var actualServiceResponse = await service.AddAchievement(newAchievement);
 
-            Assert.AreEqual(3, actualServiceResponse.Data.Count);
-            Assert.IsNull(actualServiceResponse.Message);
+            Assert.AreEqual(6, actualServiceResponse.Data!.Count);
+            Assert.AreEqual("Added 1 record.", actualServiceResponse.Message);
+        }
+
+        [TestMethod]
+        public async Task AddAchievement_NullSubmitted_ThrowNullArgException()
+        {
+            repo.Setup(p => p.Add(It.IsAny<Achievement>())).Throws(new ArgumentNullException());
+
+            var service = new AchievementService(mapper!, repo.Object);
+            AddAchievementDto? ach = null;
+
+            var actualServiceResponse = await service.AddAchievement(ach);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.AreEqual("Object reference not set to an instance of an object.", actualServiceResponse.Message);
+        }
+
+        [TestMethod]
+        public async Task AddAchievement_AchievementSubmitted_ThrowException()
+        {
+            repo.Setup(p => p.Add(It.IsAny<Achievement>())).Throws(new Exception());
+
+            var service = new AchievementService(mapper!, repo.Object);
+            AddAchievementDto ach = new AddAchievementDto();
+
+            var actualServiceResponse = await service.AddAchievement(ach);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.StartsWith("Exception of type "));
         }
 
         //[TestMethod]
