@@ -18,6 +18,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
     {
         private IMapper? mapper;
         private readonly Mock<IRepository<Achievement>> repo = new();
+        private Guid badGuid = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
         [TestInitialize]
         public void Initialize()
@@ -78,7 +79,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         {
             GetAchievementDto expectedAchievementDto = mapper!.Map<GetAchievementDto>(Seed().Result.ToList()[0]);
 
-            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()!));
+            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
             
             var service = new AchievementService(mapper!, repo.Object);
 
@@ -91,37 +92,49 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task GetAchievementById_AchievementNotFound_SuccessFalseAndNotFoundMessage()
         {
-            const string badGuid = "baddbb1c-7b7b-41c4-9e84-410f17b64bad";
             repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Achievement?>(null));
-            var id = new Guid(badGuid);
 
             var service = new AchievementService(mapper!, repo.Object);
 
-            var actualServiceResponse = await service.GetAchievementById(id);
+            var actualServiceResponse = await service.GetAchievementById(badGuid);
 
             Assert.IsFalse(actualServiceResponse.Success);
             Assert.IsTrue(actualServiceResponse.Message!.Equals($"Achievement {badGuid} not found."));
             Assert.IsNull(actualServiceResponse.Data);
         }
 
-        //[TestMethod]
-        //public async Task AddAchievement_Success()
-        //{
-        //    var service = new AchievementService(mapper, mockContext.Object);
-        //    var newAchievement = new AddAchievementDto
-        //    {
-        //        AchievementType = AchievementType.Visible,
-        //        IsIncrementalAchievement = false,
-        //        Name = "New Achievement",
-        //        PercentageUnlocked = 0f,
-        //        Points = 10
-        //    };
+        [TestMethod]
+        public async Task GetAchievementById_RepoUnavailable_FailedServiceResponse()
+        {
+            repo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new Exception("Test message"));
 
-        //    var actualServiceResponse = await service.AddAchievement(newAchievement);
+            var service = new AchievementService(mapper!, repo.Object);
+            var actualServiceResponse = await service.GetAchievementById(badGuid);
 
-        //    Assert.AreEqual(3, actualServiceResponse.Data.Count);
-        //    Assert.IsNull(actualServiceResponse.Message);
-        //}
+            Assert.IsNull(actualServiceResponse.Data);
+            Assert.AreEqual("Test message", actualServiceResponse.Message);
+            Assert.IsFalse(actualServiceResponse.Success);
+        }
+
+        [TestMethod]
+        public async Task AddAchievement_Success()
+        {
+
+            var service = new AchievementService(mapper!, repo.Object);
+            var newAchievement = new AddAchievementDto
+            {
+                AchievementType = AchievementType.Visible,
+                IsIncrementalAchievement = false,
+                Name = "New Achievement",
+                PercentageUnlocked = 0f,
+                Points = 10
+            };
+
+            var actualServiceResponse = await service.AddAchievement(newAchievement);
+
+            Assert.AreEqual(3, actualServiceResponse.Data.Count);
+            Assert.IsNull(actualServiceResponse.Message);
+        }
 
         //[TestMethod]
         //public async Task DeleteAchievement_Success()

@@ -47,6 +47,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
         public async Task<ServiceResponse<GetAchievementDto>> GetAchievementById(Guid id)
         {
             var response = new ServiceResponse<GetAchievementDto>();
+
             try
             {
                 var achievement = await _repository.Get(id);
@@ -58,9 +59,10 @@ namespace HeffayPresentsAchievements.Services.AchievementService
                 else
                 {
                     response.Data = _mapper.Map<GetAchievementDto>(await _repository.Get(id));
+                    response.Success = true;
                 }
             }
-            catch (ApplicationException ex)
+            catch (Exception ex)
             {
                 response.Success = false;
                 response.Data = null;
@@ -76,8 +78,9 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             Achievement achievement = _mapper.Map<Achievement>(newAchievement);
             achievement.Id = Guid.NewGuid();
             achievement.LastUpdated = DateTime.UtcNow;
-            await _repository.Add(achievement);
+            int rowsChanged = await _repository.Add(achievement);
             response.Data = _mapper.Map<List<GetAchievementDto>>(await _repository.GetAll());
+            response.Message = $"Added {rowsChanged} record.";
             return response;
         }
 
