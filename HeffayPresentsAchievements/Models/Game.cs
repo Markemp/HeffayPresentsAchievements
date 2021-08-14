@@ -1,10 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace HeffayPresentsAchievements.Models
 {
     public class Game : BaseEntity
     {
-        public string? Name { get; set; }
-        public List<Achievement>? Achievements { get; set; }
+        [Required]
+        public string Name { get; set; } = "";
+        public ICollection<Achievement>? Achievements { get; set; }
+        public virtual ICollection<User>? Users { get; set; }
     }
 }

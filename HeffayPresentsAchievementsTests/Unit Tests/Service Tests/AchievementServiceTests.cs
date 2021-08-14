@@ -4,6 +4,7 @@ using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Services.AchievementService;
 using HeffayPresentsAchievements.Services.Repository;
+using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -18,6 +19,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
     {
         private IMapper? mapper;
         private readonly Mock<IRepository<Achievement>> repo = new();
+        private readonly Mock<IHttpContextAccessor> context = new();
         private Guid badGuid = new("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
         [TestInitialize]
@@ -33,7 +35,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         {
             repo.Setup(p => p.GetAll()).Returns(Seed()!);
 
-            var service = new AchievementService(mapper!, repo.Object);
+            var service = new AchievementService(mapper!, repo.Object, context.Object);
             var actualServiceResponse = await service.GetAllAchievements();
 
             var expectedServiceResponse = new ServiceResponse<List<GetAchievementDto>>
@@ -54,7 +56,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         {
             repo.Setup(p => p.GetAll()).Returns(EmptyAchievementsList()!);
 
-            var service = new AchievementService(mapper!, repo.Object);
+            var service = new AchievementService(mapper!, repo.Object, context.Object);
             var actualServiceResponse = await service.GetAllAchievements();
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -66,7 +68,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         {
             repo.Setup(p => p.GetAll()).Throws(new Exception("Test message"));
 
-            var service = new AchievementService(mapper!, repo.Object);
+            var service = new AchievementService(mapper!, repo.Object, context.Object);
             var actualServiceResponse = await service.GetAllAchievements();
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -81,7 +83,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
 
             repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
             
-            var service = new AchievementService(mapper!, repo.Object);
+            var service = new AchievementService(mapper!, repo.Object, context.Object);
 
             var actualServiceResponse = await service.GetAchievementById(new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7"));
 
@@ -94,7 +96,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         {
             repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Achievement?>(null));
 
-            var service = new AchievementService(mapper!, repo.Object);
+            var service = new AchievementService(mapper!, repo.Object, context.Object);
 
             var actualServiceResponse = await service.GetAchievementById(badGuid);
 
@@ -108,7 +110,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         {
             repo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new Exception("Test message"));
 
-            var service = new AchievementService(mapper!, repo.Object);
+            var service = new AchievementService(mapper!, repo.Object, context.Object);
             var actualServiceResponse = await service.GetAchievementById(badGuid);
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -122,7 +124,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
             repo.Setup(p => p.Add(It.IsAny<Achievement>())).Returns(Task.FromResult(1));
             repo.Setup(p => p.GetAll()).Returns(Seed());
 
-            var service = new AchievementService(mapper!, repo.Object);
+            var service = new AchievementService(mapper!, repo.Object, context.Object);
 
             var newAchievement = new AddAchievementDto
             {
@@ -144,10 +146,10 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         {
             repo.Setup(p => p.Add(It.IsAny<Achievement>())).Throws(new ArgumentNullException());
 
-            var service = new AchievementService(mapper!, repo.Object);
+            var service = new AchievementService(mapper!, repo.Object, context.Object);
             AddAchievementDto? ach = null;
 
-            var actualServiceResponse = await service.AddAchievement(ach);
+            var actualServiceResponse = await service.AddAchievement(ach!);
 
             Assert.IsFalse(actualServiceResponse.Success);
             Assert.AreEqual("Object reference not set to an instance of an object.", actualServiceResponse.Message);
@@ -158,8 +160,8 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         {
             repo.Setup(p => p.Add(It.IsAny<Achievement>())).Throws(new Exception());
 
-            var service = new AchievementService(mapper!, repo.Object);
-            AddAchievementDto ach = new AddAchievementDto();
+            var service = new AchievementService(mapper!, repo.Object, context.Object);
+            AddAchievementDto ach = new();
 
             var actualServiceResponse = await service.AddAchievement(ach);
 

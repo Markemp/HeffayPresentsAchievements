@@ -8,6 +8,7 @@ using HeffayPresentsAchievements.Services.AchievementService;
 using HeffayPresentsAchievements.Data;
 using Microsoft.EntityFrameworkCore;
 using HeffayPresentsAchievements.Services.Repository;
+using Microsoft.AspNetCore.Http;
 
 namespace HeffayPresentsAchievements
 {
@@ -36,6 +37,7 @@ namespace HeffayPresentsAchievements
             services.AddAutoMapper(typeof(Startup));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IAchievementService, AchievementService>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

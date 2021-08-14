@@ -6,6 +6,7 @@ using AutoMapper;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Services.Repository;
+using Microsoft.AspNetCore.Http;
 
 namespace HeffayPresentsAchievements.Services.AchievementService
 {
@@ -13,11 +14,13 @@ namespace HeffayPresentsAchievements.Services.AchievementService
     {
         private readonly IMapper _mapper;
         private readonly IRepository<Achievement> _repository;
+        private readonly IHttpContextAccessor _httpContext;
 
-        public AchievementService(IMapper mapper, IRepository<Achievement> repo)
+        public AchievementService(IMapper mapper, IRepository<Achievement> repo, IHttpContextAccessor httpContextAccessor)
         {
             _mapper = mapper;
             _repository = repo;
+            _httpContext = httpContextAccessor;
         }
 
         public async Task<ServiceResponse<List<GetAchievementDto>>> GetAllAchievements()
@@ -81,6 +84,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
                 Achievement achievement = _mapper.Map<Achievement>(newAchievement);
                 achievement.Id = Guid.NewGuid();
                 achievement.LastUpdated = DateTime.UtcNow;
+                achievement.Game = new();
                 int rowsChanged = await _repository.Add(achievement);
                 response.Data = _mapper.Map<List<GetAchievementDto>>(await _repository.GetAll());
                 response.Message = $"Added {rowsChanged} record.";

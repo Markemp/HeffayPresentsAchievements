@@ -1,3 +1,5 @@
+using System;
+
 namespace HeffayPresentsAchievements.Models
 {
     public class Achievement : BaseEntity
@@ -8,6 +10,6 @@ namespace HeffayPresentsAchievements.Models
         public bool IsIncrementalAchievement { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
         public AchievementType AchievementType { get; set; } = AchievementType.Visible;
-        public Game? Game { get; set; }
+        public virtual Game? Game { get; set; }
     }
 }

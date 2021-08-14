@@ -1,4 +1,5 @@
 ﻿using HeffayPresentsAchievements.Models;
+using System;
 
 namespace HeffayPresentsAchievements.Dtos.Achievement
 {
@@ -9,5 +10,6 @@ namespace HeffayPresentsAchievements.Dtos.Achievement
         public float PercentageUnlocked { get; set; }
         public bool IsIncrementalAchievement { get; set; }
         public AchievementType AchievementType { get; set; }
+        public Guid GameId { get; set; }
     }
 }
