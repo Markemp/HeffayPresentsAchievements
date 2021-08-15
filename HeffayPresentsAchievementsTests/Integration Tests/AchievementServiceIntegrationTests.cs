@@ -4,34 +4,43 @@ using HeffayPresentsAchievements.Data;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Services.AchievementService;
-using Microsoft.AspNetCore.Mvc.Testing;
+using HeffayPresentsAchievements.Services.Repository;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace HeffayPresentsAchievementsTests.IntegrationTests
 {
     [TestClass]
-    public class AchievementServiceIntegrationTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class AchievementServiceIntegrationTests
     {
-        private readonly WebApplicationFactory<Startup> _factory;
         private readonly DataContext _context;
-        private readonly IMapper? mapper;
+        private readonly Mapper mapper;
+        private readonly Repository<Achievement> _achievementRepo;
+        private readonly Repository<Game> _gameRepo;
+        private readonly HttpContextAccessor _httpContext = new();
 
-        public AchievementServiceIntegrationTests(WebApplicationFactory<Startup> factory)
+        private DbContextOptions<DataContext> options;
+
+        public AchievementServiceIntegrationTests()
         {
-            _factory = factory;
-            var options = new DbContextOptionsBuilder<DataContext>()
+            options = new DbContextOptionsBuilder<DataContext>()
                 .UseInMemoryDatabase(databaseName: "Achievements")
                 .Options;
             _context = CreateContext(options);
+
+            _achievementRepo = new(_context);
+            _gameRepo = new(_context);
+
+            var mapperConfig = new MapperConfiguration(cfg => {
+                cfg.AddProfile<AutoMapperProfile>();
+            });
+            mapper = new(mapperConfig);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task AddAchievement_AddedToTestDb()
         {
             var newAchievement = new Achievement
@@ -45,9 +54,10 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
                 AchievementType = AchievementType.Visible
             };
 
-            var service = new AchievementService(mapper!, null, null, null);
+            var service = new AchievementService(mapper, _achievementRepo, _gameRepo, _httpContext);
+            
             await service.AddAchievement(new AddAchievementDto());
-
+        
         }
         private static DataContext CreateContext(DbContextOptions<DataContext> options)
             => new(options);
