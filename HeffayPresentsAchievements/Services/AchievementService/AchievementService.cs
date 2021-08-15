@@ -91,7 +91,8 @@ namespace HeffayPresentsAchievements.Services.AchievementService
                 achievement.LastUpdated = DateTime.UtcNow;
                 achievement.Game = await _gameRepository.Get(newAchievement.GameId);
                 int rowsChanged = await _repository.Add(achievement);
-                response.Data = _mapper.Map<List<GetAchievementDto>>(await _repository.GetAll());
+                response.Data = _mapper.Map<List<GetAchievementDto>>(_repository.GetAll()
+                    .Result.Where(a => a != null && a.IsDeleted == false));
                 response.Message = $"Added {rowsChanged} record.";
             }
             catch (ArgumentNullException ex)

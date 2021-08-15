@@ -138,7 +138,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
 
             var actualServiceResponse = await service.AddAchievement(newAchievement);
 
-            Assert.AreEqual(6, actualServiceResponse.Data!.Count);
+            Assert.AreEqual(4, actualServiceResponse.Data!.Count);
             Assert.AreEqual("Added 1 record.", actualServiceResponse.Message);
         }
 

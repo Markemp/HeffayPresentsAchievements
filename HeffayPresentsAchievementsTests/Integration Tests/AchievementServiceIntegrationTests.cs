@@ -21,8 +21,7 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
         private readonly Repository<Achievement> _achievementRepo;
         private readonly Repository<Game> _gameRepo;
         private readonly HttpContextAccessor _httpContext = new();
-
-        private DbContextOptions<DataContext> options;
+        private readonly DbContextOptions<DataContext> options;
 
         public AchievementServiceIntegrationTests()
         {
@@ -41,24 +40,78 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
         }
 
         [TestMethod]
-        public async Task AddAchievement_AddedToTestDb()
+        public async Task AddAchievement_AddToTestDb()
         {
-            var newAchievement = new Achievement
+            // Verify db empty, add an achievement, verify it exists
+            var newAchievement = new AddAchievementDto
             {
-                Id = new Guid("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
                 Name = "Achievement 01",
                 Points = 10,
                 PercentageUnlocked = 0,
                 IsIncrementalAchievement = false,
-                IsDeleted = false,
                 AchievementType = AchievementType.Visible
             };
 
             var service = new AchievementService(mapper, _achievementRepo, _gameRepo, _httpContext);
-            
-            await service.AddAchievement(new AddAchievementDto());
-        
+
+            var initialResult = await service.GetAllAchievements();
+            Assert.IsTrue(initialResult.Success);
+            Assert.IsNull(initialResult.Data);
+            Assert.AreEqual("No achievements found.", initialResult.Message);
+
+            var addResult = await service.AddAchievement(newAchievement);
+            Assert.IsTrue(addResult.Success);
+            Assert.AreEqual("Added 1 record.", addResult.Message);
+            Assert.AreEqual("Achievement 01", addResult.Data![0].Name);
+
+            var checkResult = await service.GetAllAchievements();
+            Assert.IsTrue(checkResult.Success);
+            Assert.IsNotNull(checkResult.Data);
+            Assert.AreEqual(1, checkResult.Data!.Count);
+            Assert.AreEqual("Achievement 01", addResult.Data![0].Name);
         }
+
+        [TestMethod]
+        public async Task GetAchievementById()
+        {
+            // Verify db empty, add an achievement, verify it exists
+            var newAchievement = new AddAchievementDto
+            {
+                Name = "Achievement 01",
+                Points = 10,
+                PercentageUnlocked = 0,
+                IsIncrementalAchievement = false,
+                AchievementType = AchievementType.Visible
+            };
+
+            var newAchievement2 = new AddAchievementDto
+            {
+                Name = "Achievement 02",
+                Points = 10,
+                PercentageUnlocked = 0,
+                IsIncrementalAchievement = false,
+                AchievementType = AchievementType.Visible
+            };
+
+            var service = new AchievementService(mapper, _achievementRepo, _gameRepo, _httpContext);
+
+            var addResult = await service.AddAchievement(newAchievement);
+            var addResult2 = await service.AddAchievement(newAchievement2);
+            Assert.IsTrue(addResult.Success);
+            Assert.IsTrue(addResult2.Success);
+            Assert.AreEqual("Added 1 record.", addResult.Message);
+            Assert.AreEqual("Added 1 record.", addResult2.Message);
+
+            var id1 = addResult2.Data![0].Id;
+            var id2 = addResult2.Data![1].Id;
+
+            var checkResult = await service.GetAchievementById(id1);
+            var checkResult2 = await service.GetAchievementById(id2);
+
+            Assert.AreEqual(id1, checkResult.Data!.Id);
+            Assert.AreEqual(id2, checkResult2.Data!.Id);
+        }
+
         private static DataContext CreateContext(DbContextOptions<DataContext> options)
             => new(options);
     }
