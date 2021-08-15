@@ -129,11 +129,11 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
 
             var addResult = await service.AddAchievement(achievement);
 
-            var updateResult = await service.UpdateAchievement(updateAchievement);
-            Assert.IsTrue(updateResult.Success);
-            Assert.AreEqual("Added 1 row (should be 1).", updateResult.Message);
+            //var updateResult = await service.UpdateAchievement(updateAchievement);
+            //Assert.IsTrue(updateResult.Success);
+            //Assert.AreEqual("Added 1 row (should be 1).", updateResult.Message);
 
-            var checkResult = await service.GetAchievementById(id1);
+            //var checkResult = await service.GetAchievementById(id1);
 
         }
 
