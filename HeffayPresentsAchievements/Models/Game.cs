@@ -7,7 +7,7 @@ namespace HeffayPresentsAchievements.Models
     {
         [Required]
         public string Name { get; set; } = "";
-        public ICollection<Achievement>? Achievements { get; set; }
+        public virtual ICollection<Achievement>? Achievements { get; set; }
         public virtual ICollection<User>? Users { get; set; }
     }
 }

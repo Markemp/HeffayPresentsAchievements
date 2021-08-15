@@ -112,6 +112,31 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             Assert.AreEqual(id2, checkResult2.Data!.Id);
         }
 
+        [TestMethod]
+        public async Task UpdateAchievement()
+        {
+            // Verify db empty, add an achievement, verify it exists
+            var achievement = new AddAchievementDto
+            {
+                Name = "Update Achievement Test",
+                Points = 10,
+                PercentageUnlocked = 0,
+                IsIncrementalAchievement = false,
+                AchievementType = AchievementType.Visible
+            };
+
+            var service = new AchievementService(mapper, _achievementRepo, _gameRepo, _httpContext);
+
+            var addResult = await service.AddAchievement(achievement);
+
+            var updateResult = await service.UpdateAchievement(updateAchievement);
+            Assert.IsTrue(updateResult.Success);
+            Assert.AreEqual("Added 1 row (should be 1).", updateResult.Message);
+
+            var checkResult = await service.GetAchievementById(id1);
+
+        }
+
         private static DataContext CreateContext(DbContextOptions<DataContext> options)
             => new(options);
     }

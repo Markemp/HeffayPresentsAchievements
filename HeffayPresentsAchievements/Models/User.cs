@@ -7,6 +7,8 @@ namespace HeffayPresentsAchievements.Models
     {
         [Required]
         public string Username { get; set; } = "";
+        public byte[]? PasswordHash { get; set; }
+        public byte[]? PasswordSalt { get; set; }
         public virtual ICollection<Game>? Games { get; set; }
     }
 }

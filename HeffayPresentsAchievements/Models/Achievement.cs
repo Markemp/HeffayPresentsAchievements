@@ -10,6 +10,6 @@ namespace HeffayPresentsAchievements.Models
         public bool IsIncrementalAchievement { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
         public AchievementType AchievementType { get; set; } = AchievementType.Visible;
-        public virtual Game? Game { get; set; }
+        public Game? Game { get; set; }
     }
 }
