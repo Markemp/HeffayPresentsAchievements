@@ -171,6 +171,54 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         }
 
         [TestMethod]
+        public async Task UpdateAchievement_Success()
+        {
+            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            repo.Setup(p => p.Update(It.IsAny<Achievement>())).Returns(Task.FromResult(new Achievement()));
+
+            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            UpdateAchievementDto ach = new();
+
+            var actualServiceResponse = await service.UpdateAchievement(ach);
+
+            Assert.IsTrue(actualServiceResponse.Success);
+            Assert.IsNull(actualServiceResponse.Message);
+            Assert.IsNotNull(actualServiceResponse.Data);
+        }
+
+        [TestMethod]
+        public async Task UpdateAchievement_AchievementNotFound()
+        {
+            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Achievement?>(null));
+
+            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            UpdateAchievementDto ach = new();
+
+            var actualServiceResponse = await service.UpdateAchievement(ach);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.StartsWith("Achievement "));
+            Assert.IsNull(actualServiceResponse.Data);
+        }
+
+        [TestMethod]
+        public async Task UpdateAchievement_UpdateFailed()
+        {
+            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            repo.Setup(p => p.Update(It.IsAny<Achievement>())).Throws(new Exception());
+
+            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            UpdateAchievementDto ach = new();
+
+            var actualServiceResponse = await service.UpdateAchievement(ach);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.Equals("Exception of type 'System.Exception' was thrown."));
+            Assert.IsNull(actualServiceResponse.Data);
+        }
+
+
+        [TestMethod]
         public async Task DeleteAchievement_Success()
         {
             repo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(1));
