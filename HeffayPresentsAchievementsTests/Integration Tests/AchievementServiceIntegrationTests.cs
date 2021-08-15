@@ -61,14 +61,14 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
 
             var addResult = await service.AddAchievement(newAchievement);
             Assert.IsTrue(addResult.Success);
-            Assert.AreEqual("Added 1 record.", addResult.Message);
-            Assert.AreEqual("Achievement 01", addResult.Data![0].Name);
+            Assert.AreEqual("Added 1 row (should be 1).", addResult.Message);
+            Assert.AreEqual("Achievement 01", addResult.Data!.Name);
 
             var checkResult = await service.GetAllAchievements();
             Assert.IsTrue(checkResult.Success);
             Assert.IsNotNull(checkResult.Data);
             Assert.AreEqual(1, checkResult.Data!.Count);
-            Assert.AreEqual("Achievement 01", addResult.Data![0].Name);
+            Assert.AreEqual("Achievement 01", addResult.Data!.Name);
         }
 
         [TestMethod]
@@ -99,11 +99,11 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             var addResult2 = await service.AddAchievement(newAchievement2);
             Assert.IsTrue(addResult.Success);
             Assert.IsTrue(addResult2.Success);
-            Assert.AreEqual("Added 1 record.", addResult.Message);
-            Assert.AreEqual("Added 1 record.", addResult2.Message);
+            Assert.AreEqual("Added 1 row (should be 1).", addResult.Message);
+            Assert.AreEqual("Added 1 row (should be 1).", addResult2.Message);
 
-            var id1 = addResult2.Data![0].Id;
-            var id2 = addResult2.Data![1].Id;
+            var id1 = addResult2.Data!.Id;
+            var id2 = addResult2.Data!.Id;
 
             var checkResult = await service.GetAchievementById(id1);
             var checkResult2 = await service.GetAchievementById(id2);

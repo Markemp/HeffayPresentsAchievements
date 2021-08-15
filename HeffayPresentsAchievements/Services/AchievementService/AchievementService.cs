@@ -80,9 +80,9 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             return response;
         }
 
-        public async Task<ServiceResponse<List<GetAchievementDto>>> AddAchievement(AddAchievementDto newAchievement)
+        public async Task<ServiceResponse<GetAchievementDto>> AddAchievement(AddAchievementDto newAchievement)
         {
-            var response = new ServiceResponse<List<GetAchievementDto>>();
+            var response = new ServiceResponse<GetAchievementDto>();
 
             try
             {
@@ -90,10 +90,10 @@ namespace HeffayPresentsAchievements.Services.AchievementService
                 achievement.Id = Guid.NewGuid();
                 achievement.LastUpdated = DateTime.UtcNow;
                 achievement.Game = await _gameRepository.Get(newAchievement.GameId);
-                int rowsChanged = await _repository.Add(achievement);
-                response.Data = _mapper.Map<List<GetAchievementDto>>(_repository.GetAll()
-                    .Result.Where(a => a != null && a.IsDeleted == false));
-                response.Message = $"Added {rowsChanged} record.";
+                var rowsChanged = await _repository.Add(achievement);
+                var newAch = await _repository.Get(achievement.Id);
+                response.Data = _mapper.Map<GetAchievementDto>(newAch);
+                response.Message = $"Added {rowsChanged} row (should be 1).";
             }
             catch (ArgumentNullException ex)
             {

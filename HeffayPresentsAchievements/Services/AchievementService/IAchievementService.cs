@@ -10,7 +10,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
     {
         Task<ServiceResponse<List<GetAchievementDto>>> GetAllAchievements();
         Task<ServiceResponse<GetAchievementDto>> GetAchievementById(Guid id);
-        Task<ServiceResponse<List<GetAchievementDto>>> AddAchievement(AddAchievementDto newAchievement);
+        Task<ServiceResponse<GetAchievementDto>> AddAchievement(AddAchievementDto newAchievement);
         Task<ServiceResponse<GetAchievementDto>> UpdateAchievement(UpdateAchievementDto updatedAchievement);
         Task<ServiceResponse<List<GetAchievementDto>>> DeleteAchievement(Guid id);
     }

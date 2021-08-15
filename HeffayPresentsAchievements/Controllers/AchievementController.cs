@@ -32,7 +32,7 @@ namespace HeffayPresentsAchievements.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServiceResponse<List<GetAchievementDto>>>> AddAchievement(AddAchievementDto newAchievement)
+        public async Task<ActionResult<ServiceResponse<GetAchievementDto>>> AddAchievement(AddAchievementDto newAchievement)
         {
             return Ok(await _service.AddAchievement(newAchievement));
         }

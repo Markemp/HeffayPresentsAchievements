@@ -123,7 +123,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         public async Task AddAchievement_Success()
         {
             repo.Setup(p => p.Add(It.IsAny<Achievement>())).Returns(Task.FromResult(1));
-            repo.Setup(p => p.GetAll()).Returns(Seed());
+            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
 
             var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
 
@@ -138,8 +138,8 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
 
             var actualServiceResponse = await service.AddAchievement(newAchievement);
 
-            Assert.AreEqual(4, actualServiceResponse.Data!.Count);
-            Assert.AreEqual("Added 1 record.", actualServiceResponse.Message);
+            Assert.AreEqual("First achievement", actualServiceResponse.Data!.Name);
+            Assert.AreEqual("Added 1 row (should be 1).", actualServiceResponse.Message);
         }
 
         [TestMethod]
