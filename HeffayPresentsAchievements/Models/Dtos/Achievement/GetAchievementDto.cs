@@ -14,6 +14,7 @@ namespace HeffayPresentsAchievements.Dtos.Achievement
         public DateTime DateCreated { get; set; }
         public DateTime LastUpdated { get; set; }
         public AchievementType AchievementType { get; set; }
+        public Guid GameId { get; set; }
 
         public override string ToString()
         {

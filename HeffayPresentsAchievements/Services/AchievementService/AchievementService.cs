@@ -14,13 +14,18 @@ namespace HeffayPresentsAchievements.Services.AchievementService
     {
         private readonly IMapper _mapper;
         private readonly IRepository<Achievement> _repository;
+        private readonly IRepository<Game> _gameRepository;
         private readonly IHttpContextAccessor _httpContext;
 
-        public AchievementService(IMapper mapper, IRepository<Achievement> repo, IHttpContextAccessor httpContextAccessor)
+        public AchievementService(IMapper mapper, 
+            IRepository<Achievement> repo, 
+            IRepository<Game> gameRepo,
+            IHttpContextAccessor httpContextAccessor)
         {
             _mapper = mapper;
             _repository = repo;
             _httpContext = httpContextAccessor;
+            _gameRepository = gameRepo;
         }
 
         public async Task<ServiceResponse<List<GetAchievementDto>>> GetAllAchievements()
@@ -84,7 +89,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
                 Achievement achievement = _mapper.Map<Achievement>(newAchievement);
                 achievement.Id = Guid.NewGuid();
                 achievement.LastUpdated = DateTime.UtcNow;
-                achievement.Game = new();
+                achievement.Game = await _gameRepository.Get(newAchievement.GameId);
                 int rowsChanged = await _repository.Add(achievement);
                 response.Data = _mapper.Map<List<GetAchievementDto>>(await _repository.GetAll());
                 response.Message = $"Added {rowsChanged} record.";
@@ -142,13 +147,25 @@ namespace HeffayPresentsAchievements.Services.AchievementService
             var response = new ServiceResponse<List<GetAchievementDto>>();
             try
             {
-                var achievement = await _repository.Remove(id);
-                response.Data = _mapper.Map<List<GetAchievementDto>>(_repository.GetAll());
+                var rowsAffected = await _repository.Remove(id);
+                response.Message = $"Removed {rowsAffected} rows.";
+                
+                if (rowsAffected != 0)
+                {
+                    var dbAchievements = await _repository.GetAll();
+                    response.Data = dbAchievements.Where(a => a != null && a.IsDeleted == false).Select(a => _mapper.Map<GetAchievementDto>(a)).ToList();
+                }
+                else
+                {
+                    response.Message = "Achievement not found.";
+                    response.Success = false;
+                }
             }
             catch (Exception ex)
             {
                 response.Success = false;
                 response.Message = (ex.Message);
+                response.Data = null;
             }
 
             return response;
