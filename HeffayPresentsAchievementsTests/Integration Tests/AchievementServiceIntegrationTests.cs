@@ -16,14 +16,15 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
     [TestClass]
     public class AchievementServiceIntegrationTests
     {
-        private readonly DataContext _context;
-        private readonly Mapper mapper;
-        private readonly Repository<Achievement> _achievementRepo;
-        private readonly Repository<Game> _gameRepo;
-        private readonly HttpContextAccessor _httpContext = new();
-        private readonly DbContextOptions<DataContext> options;
+        private DataContext? _context;
+        private Mapper? mapper;
+        private Repository<Achievement>? _achievementRepo;
+        private Repository<Game>? _gameRepo;
+        private HttpContextAccessor? _httpContext = new();
+        private DbContextOptions<DataContext>? options;
 
-        public AchievementServiceIntegrationTests()
+        [TestInitialize]
+        public void Initialize()
         {
             options = new DbContextOptionsBuilder<DataContext>()
                 .UseInMemoryDatabase(databaseName: "Achievements")
@@ -52,7 +53,7 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
                 AchievementType = AchievementType.Visible
             };
 
-            var service = new AchievementService(mapper, _achievementRepo, _gameRepo, _httpContext);
+            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
 
             var initialResult = await service.GetAllAchievements();
             Assert.IsTrue(initialResult.Success);
@@ -93,7 +94,7 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
                 AchievementType = AchievementType.Visible
             };
 
-            var service = new AchievementService(mapper, _achievementRepo, _gameRepo, _httpContext);
+            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
 
             var addResult = await service.AddAchievement(newAchievement);
             var addResult2 = await service.AddAchievement(newAchievement2);
@@ -116,7 +117,7 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
         public async Task UpdateAchievement()
         {
             // Verify db empty, add an achievement, verify it exists
-            var achievement = new AddAchievementDto
+            var newAchievement = new AddAchievementDto
             {
                 Name = "Update Achievement Test",
                 Points = 10,
@@ -125,12 +126,39 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
                 AchievementType = AchievementType.Visible
             };
 
-            var service = new AchievementService(mapper, _achievementRepo, _gameRepo, _httpContext);
+            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
 
-            var addResult = await service.AddAchievement(achievement);
+            var addResult = await service.AddAchievement(newAchievement);
+            Assert.IsTrue(addResult.Success);
 
-            //var updateResult = await service.UpdateAchievement(updateAchievement);
-            //Assert.IsTrue(updateResult.Success);
+            var achievement = addResult.Data!;
+
+            var updateAchievement = new UpdateAchievementDto
+            {
+                Id = achievement.Id,
+                Name = achievement.Name,
+                IsDeleted = achievement.IsDeleted,
+                AchievementType = achievement.AchievementType,
+                IsIncrementalAchievement = achievement.IsIncrementalAchievement,
+                PercentageUnlocked = achievement.PercentageUnlocked,
+                Points = achievement.Points
+            };
+
+            // No values changed
+            var updateResult = await service.UpdateAchievement(updateAchievement);
+            Assert.IsTrue(updateResult.Success);
+
+            // Name changed
+            updateAchievement.Name = "New Achievement name";
+            updateResult = await service.UpdateAchievement(updateAchievement);
+            Assert.AreEqual("New Achievement name", updateResult.Data!.Name);
+            Assert.AreEqual(10, updateResult.Data!.Points);
+
+            updateAchievement.IsDeleted = true;
+            updateResult = await service.UpdateAchievement(updateAchievement);
+            Assert.IsTrue(updateResult.Data!.IsDeleted);
+
+
             //Assert.AreEqual("Added 1 row (should be 1).", updateResult.Message);
 
             //var checkResult = await service.GetAchievementById(id1);

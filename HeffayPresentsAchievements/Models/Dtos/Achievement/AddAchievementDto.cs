@@ -3,7 +3,7 @@ using System;
 
 namespace HeffayPresentsAchievements.Dtos.Achievement
 {
-    public class AddAchievementDto
+    public record AddAchievementDto
     {
         public string? Name { get; set; }
         public int Points { get; set; }
