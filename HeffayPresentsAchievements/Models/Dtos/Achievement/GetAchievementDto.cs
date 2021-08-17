@@ -8,7 +8,6 @@ namespace HeffayPresentsAchievements.Dtos.Achievement
         public Guid Id { get; set; }
         public string? Name { get; set; }
         public int Points { get; set; }
-        public float PercentageUnlocked { get; set; }
         public bool IsIncrementalAchievement { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime DateCreated { get; set; }

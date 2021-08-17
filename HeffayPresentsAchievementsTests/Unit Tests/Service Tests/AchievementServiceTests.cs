@@ -132,7 +132,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                 AchievementType = AchievementType.Visible,
                 IsIncrementalAchievement = false,
                 Name = "New Achievement",
-                PercentageUnlocked = 0f,
                 Points = 10
             };
 
@@ -280,7 +279,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = false,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 },
                 new GetAchievementDto
@@ -292,7 +290,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = false,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 },
                 new GetAchievementDto
@@ -304,7 +301,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = false,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 },
                 new GetAchievementDto
@@ -316,7 +312,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = false,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 }
             };
@@ -337,7 +332,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = false,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 },
                 new Achievement
@@ -349,7 +343,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = false,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 },
                 new Achievement
@@ -361,7 +354,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = false,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 },
                 new Achievement
@@ -373,7 +365,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = true,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 },
                 new Achievement
@@ -385,7 +376,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = false,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 },
                 new Achievement
@@ -397,7 +387,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     IsDeleted = true,
                     IsIncrementalAchievement = false,
                     LastUpdated = DateTime.UtcNow,
-                    PercentageUnlocked = 0f,
                     Points = 10
                 }
             };

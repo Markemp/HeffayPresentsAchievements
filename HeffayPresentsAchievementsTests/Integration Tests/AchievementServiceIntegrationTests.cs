@@ -48,7 +48,6 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             {
                 Name = "Achievement 01",
                 Points = 10,
-                PercentageUnlocked = 0,
                 IsIncrementalAchievement = false,
                 AchievementType = AchievementType.Visible
             };
@@ -80,7 +79,6 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             {
                 Name = "Achievement 01",
                 Points = 10,
-                PercentageUnlocked = 0,
                 IsIncrementalAchievement = false,
                 AchievementType = AchievementType.Visible
             };
@@ -89,7 +87,6 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             {
                 Name = "Achievement 02",
                 Points = 10,
-                PercentageUnlocked = 0,
                 IsIncrementalAchievement = false,
                 AchievementType = AchievementType.Visible
             };
@@ -121,7 +118,6 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             {
                 Name = "Update Achievement Test",
                 Points = 10,
-                PercentageUnlocked = 0,
                 IsIncrementalAchievement = false,
                 AchievementType = AchievementType.Visible
             };
@@ -140,7 +136,6 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
                 IsDeleted = achievement.IsDeleted,
                 AchievementType = achievement.AchievementType,
                 IsIncrementalAchievement = achievement.IsIncrementalAchievement,
-                PercentageUnlocked = achievement.PercentageUnlocked,
                 Points = achievement.Points
             };
 
@@ -148,20 +143,26 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             var updateResult = await service.UpdateAchievement(updateAchievement);
             Assert.IsTrue(updateResult.Success);
 
-            // Name changed
+            // Values changed
             updateAchievement.Name = "New Achievement name";
+            updateAchievement.Points = 20;
+            updateAchievement.IsIncrementalAchievement = false;
+            updateAchievement.IsDeleted = true;
+
             updateResult = await service.UpdateAchievement(updateAchievement);
             Assert.AreEqual("New Achievement name", updateResult.Data!.Name);
-            Assert.AreEqual(10, updateResult.Data!.Points);
-
-            updateAchievement.IsDeleted = true;
-            updateResult = await service.UpdateAchievement(updateAchievement);
+            Assert.AreEqual(20, updateResult.Data!.Points);
             Assert.IsTrue(updateResult.Data!.IsDeleted);
+            Assert.IsFalse(updateResult.Data!.IsIncrementalAchievement);
 
+            // Values changed again
+            updateAchievement.IsDeleted = false;
+            updateAchievement.Name = "lol";
+            var updateResult2 = await service.UpdateAchievement(updateAchievement);
 
-            //Assert.AreEqual("Added 1 row (should be 1).", updateResult.Message);
+            Assert.AreEqual("lol", updateResult2.Data!.Name);
+            Assert.IsFalse(updateResult2.Data!.IsDeleted);
 
-            //var checkResult = await service.GetAchievementById(id1);
 
         }
 

@@ -119,9 +119,9 @@ namespace HeffayPresentsAchievements.Services.AchievementService
                 if (achievement != null)
                 {
                     achievement.Name = updatedAchievement.Name ?? achievement.Name;
-                    achievement.IsIncrementalAchievement = updatedAchievement.IsIncrementalAchievement ?? achievement.IsIncrementalAchievement;
-                    achievement.PercentageUnlocked = updatedAchievement.PercentageUnlocked ?? achievement.PercentageUnlocked;
-                    achievement.Points = updatedAchievement.Points ?? achievement.Points;
+                    achievement.IsIncrementalAchievement = updatedAchievement.IsIncrementalAchievement;
+                    achievement.IsDeleted = updatedAchievement.IsDeleted;
+                    achievement.Points = updatedAchievement.Points;
                     achievement.AchievementType = updatedAchievement.AchievementType ?? achievement.AchievementType;
                     achievement.LastUpdated = DateTime.UtcNow;
                     await _repository.Update(achievement);
