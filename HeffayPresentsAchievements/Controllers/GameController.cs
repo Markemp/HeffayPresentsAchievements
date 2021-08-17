@@ -19,7 +19,7 @@ namespace HeffayPresentsAchievements.Controllers
         [HttpGet("GetAll")]
         public async Task<ActionResult<ServiceResponse<List<GetGameDto>>>> GetGames()
         {
-            return Ok(await _service.GetAllGames());
+            return Ok(await _service.GetGames());
         }
     }
 }

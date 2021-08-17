@@ -5,7 +5,6 @@ using HeffayPresentsAchievements.Services.Repository;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace HeffayPresentsAchievements.Services.GameService
@@ -13,8 +12,8 @@ namespace HeffayPresentsAchievements.Services.GameService
     public class GameService : IGameService
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<Achievement> _achievemenetRepository;
-        private readonly IRepository<Game> _gameRepository;
+        private readonly IRepository<Achievement> _achievementRepo;
+        private readonly IRepository<Game> _gameRepo;
         private readonly IHttpContextAccessor _httpContext;
 
         public GameService(IMapper mapper,
@@ -23,14 +22,26 @@ namespace HeffayPresentsAchievements.Services.GameService
             IHttpContextAccessor httpContextAccessor)
         {
             _mapper = mapper;
-            _achievemenetRepository = achievementRepo;
-            _gameRepository = gameRepo;
+            _achievementRepo = achievementRepo;
+            _gameRepo = gameRepo;
             _httpContext = httpContextAccessor;
         }
 
-        public Task<ServiceResponse<List<GetGameDto>>> GetGames()
+        public async Task<ServiceResponse<List<GetGameDto>>> GetGames()
         {
-            throw new NotImplementedException();
+            var response = new ServiceResponse<List<GetGameDto>>();
+            
+            try
+            {
+                await _gameRepo.GetAll();
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+            
+            return response;
         }
 
         public Task<ServiceResponse<GetGameDto>> AddGame(AddGameDto newGame)
