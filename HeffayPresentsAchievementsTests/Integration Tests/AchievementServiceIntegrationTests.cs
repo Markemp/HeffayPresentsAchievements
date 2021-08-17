@@ -34,7 +34,8 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             _achievementRepo = new(_context);
             _gameRepo = new(_context);
 
-            var mapperConfig = new MapperConfiguration(cfg => {
+            var mapperConfig = new MapperConfiguration(cfg =>
+            {
                 cfg.AddProfile<AutoMapperProfile>();
             });
             mapper = new(mapperConfig);
@@ -162,11 +163,38 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
 
             Assert.AreEqual("lol", updateResult2.Data!.Name);
             Assert.IsFalse(updateResult2.Data!.IsDeleted);
+        }
 
+        [TestMethod]
+        public async Task DeleteAchievement()
+        {
+            // Verify db empty, add an achievement, verify it exists
+            var newAchievement = new AddAchievementDto
+            {
+                Name = "Delete Achievement Test",
+                Points = 10,
+                IsIncrementalAchievement = false,
+                AchievementType = AchievementType.Visible
+            };
 
+            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
+
+            var addResult = await service.AddAchievement(newAchievement);
+
+            // Delete non-existant achievement
+            var deleteResult = await service.DeleteAchievement(Guid.Empty);
+            Assert.IsFalse(deleteResult.Success);
+            Assert.AreEqual("Achievement not found.", deleteResult.Message);
+
+            // Delete added achievement
+            var deleteResult2 = await service.DeleteAchievement(addResult.Data!.Id);
+            Assert.IsTrue(deleteResult2.Success);
+            Assert.IsTrue(deleteResult2.Message!.StartsWith("Removed 1 rows."));
+            var checkAchievement = await service.GetAchievementById(addResult.Data!.Id);
+            Assert.IsFalse(checkAchievement.Success);
         }
 
         private static DataContext CreateContext(DbContextOptions<DataContext> options)
-            => new(options);
+        => new(options);
     }
 }
