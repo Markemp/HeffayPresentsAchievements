@@ -3,8 +3,8 @@
 namespace HeffayPresentsAchievements.Models.Dtos.Game
 {
     public record UpdateGameDto
-        (
-            Guid Id,
-            string Name
-        );
+    (
+        Guid Id,
+        string Name
+    );
 }

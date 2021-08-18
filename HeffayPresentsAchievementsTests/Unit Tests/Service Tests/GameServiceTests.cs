@@ -38,19 +38,38 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             gameRepo.Setup(p => p.GetAll()).Returns(Seed()!);
 
             var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
-            var actualServiceResponse = await service.GetGames();
-
-            var expectedServiceResponse = new ServiceResponse<List<GetGameDto>>
-            {
-                Data = new List<GetGameDto> { new GetGameDto(new Guid(), "game name") },
-                Success = true,
-                Message = null
-            };
+            var actualServiceResponse = await service.GetAllGames();
 
             Assert.IsNotNull(actualServiceResponse.Data);
-            Assert.AreEqual(expectedServiceResponse.Data.Count, actualServiceResponse.Data.Count);
-            Assert.AreEqual(expectedServiceResponse.Data[0].Name, actualServiceResponse.Data[0].Name);
-            Assert.AreEqual(expectedServiceResponse.Data[0].GameId, actualServiceResponse.Data[0].GameId);
+            Assert.AreEqual(2, actualServiceResponse.Data.Count);
+            Assert.AreEqual("Game 1", actualServiceResponse.Data[0].Name);
+            Assert.AreEqual(new Guid("6a3dbb1c-0001-41c4-9e84-410f17b644e7"), actualServiceResponse.Data[0].Id);
+        }
+
+        [TestMethod]
+        public async Task GetAllGames_NoGamesReturned()
+        {
+            gameRepo.Setup(p => p.GetAll()).Returns(EmptyGamesList());
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            var actualServiceResponse = await service.GetAllGames();
+
+            Assert.IsNull(actualServiceResponse.Data);
+            Assert.IsTrue(actualServiceResponse.Success);
+            Assert.AreEqual("No games found.", actualServiceResponse.Message);
+        }
+
+        [TestMethod]
+        public async Task GetAllGames_RepoUnavailable_FailedServiceResponse()
+        {
+            gameRepo.Setup(p => p.GetAll()).Throws(new Exception("Test message"));
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            var actualServiceResponse = await service.GetAllGames();
+
+            Assert.IsNull(actualServiceResponse.Data);
+            Assert.AreEqual("Test message", actualServiceResponse.Message);
+            Assert.IsFalse(actualServiceResponse.Success);
         }
 
         private async static Task<IEnumerable<Game?>> Seed()
@@ -59,15 +78,37 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             {
                 new Game
                 {
-                    Id = new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7"),
-                    Name = "First achievement",
+                    Id = new Guid("6a3dbb1c-0001-41c4-9e84-410f17b644e7"),
+                    Name = "Game 1",
                     DateCreated = DateTime.UtcNow,
                     IsDeleted = false,
                     LastUpdated = DateTime.UtcNow
                 },
+                new Game
+                {
+                    Id = new Guid("6a3dbb1c-0002-41c4-9e84-410f17b644e7"),
+                    Name = "Game 2",
+                    DateCreated = DateTime.UtcNow,
+                    IsDeleted = false,
+                    LastUpdated = DateTime.UtcNow
+                },
+                new Game
+                {
+                    Id = new Guid("6a3dbb1c-0003-41c4-9e84-410f17b644e7"),
+                    Name = "Game 3",
+                    DateCreated = DateTime.UtcNow,
+                    IsDeleted = true,
+                    LastUpdated = DateTime.UtcNow
+                }
             };
 
             return games;
+        }
+
+        private async static Task<IEnumerable<Game?>> EmptyGamesList()
+        {
+            var games = new List<Game?>();
+            return games.AsEnumerable();
         }
     }
 }

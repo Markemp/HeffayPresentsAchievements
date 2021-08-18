@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
+using HeffayPresentsAchievements.Models.Dtos.Game;
 
 namespace HeffayPresentsAchievements
 {
@@ -11,6 +12,10 @@ namespace HeffayPresentsAchievements
             CreateMap<Achievement, GetAchievementDto>().ReverseMap();
             CreateMap<GetAchievementDto, Achievement>().ReverseMap();
             CreateMap<Achievement, AddAchievementDto>().ReverseMap();
+
+            CreateMap<Game, GetGameDto>().ReverseMap();
+            CreateMap<Game, AddGameDto>().ReverseMap();
+
         }
     }
 }

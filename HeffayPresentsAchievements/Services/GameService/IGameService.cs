@@ -8,7 +8,7 @@ namespace HeffayPresentsAchievements.Services.GameService
 {
     public interface IGameService
     {
-        Task<ServiceResponse<List<GetGameDto>>> GetGames();
+        Task<ServiceResponse<List<GetGameDto>>> GetAllGames();
         Task<ServiceResponse<GetGameDto>> GetGameById(Guid id);
         Task<ServiceResponse<GetGameDto>> AddGame(AddGameDto newGame);
         Task<ServiceResponse<GetGameDto>> UpdateGame(UpdateGameDto updateGame);

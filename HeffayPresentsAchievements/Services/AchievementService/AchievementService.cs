@@ -37,7 +37,10 @@ namespace HeffayPresentsAchievements.Services.AchievementService
                 var dbAchievements = await _repository.GetAll();
 
                 if (dbAchievements.Any())
-                    response.Data = dbAchievements.Where(a => a != null && a.IsDeleted == false).Select(a => _mapper.Map<GetAchievementDto>(a)).ToList();
+                    response.Data = dbAchievements
+                        .Where(a => a != null && a.IsDeleted == false)
+                        .Select(a => _mapper.Map<GetAchievementDto>(a))
+                        .ToList();
                 else
                     response.Message = "No achievements found.";
 
