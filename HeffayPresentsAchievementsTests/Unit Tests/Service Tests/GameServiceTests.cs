@@ -72,6 +72,48 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             Assert.IsFalse(actualServiceResponse.Success);
         }
 
+        [TestMethod]
+        public async Task GetGameById_Successful()
+        {
+            GetGameDto expectedAchievementDto = mapper!.Map<GetGameDto>(Seed().Result.ToList()[0]);
+
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+
+            var actualServiceResponse = await service.GetGameById(new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7"));
+
+            Assert.IsNotNull(actualServiceResponse.Data);
+            Assert.IsTrue(actualServiceResponse.Success);
+        }
+
+        [TestMethod]
+        public async Task GetGameById_GameNotFound_SuccessFalseAndNotFoundMessage()
+        {
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Game?>(null));
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+
+            var actualServiceResponse = await service.GetGameById(badGuid);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.Equals($"Game {badGuid} not found."));
+            Assert.IsNull(actualServiceResponse.Data);
+        }
+
+        [TestMethod]
+        public async Task GetAchievementById_RepoUnavailable_FailedServiceResponse()
+        {
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new Exception("Test message"));
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            var actualServiceResponse = await service.GetGameById(badGuid);
+
+            Assert.IsNull(actualServiceResponse.Data);
+            Assert.AreEqual("Test message", actualServiceResponse.Message);
+            Assert.IsFalse(actualServiceResponse.Success);
+        }
+
         private async static Task<IEnumerable<Game?>> Seed()
         {
             var games = new List<Game?>

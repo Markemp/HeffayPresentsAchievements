@@ -57,6 +57,34 @@ namespace HeffayPresentsAchievements.Services.GameService
             return response;
         }
 
+        public async Task<ServiceResponse<GetGameDto>> GetGameById(Guid id)
+        {
+            var response = new ServiceResponse<GetGameDto>();
+
+            try
+            {
+                var achievement = await _gameRepo.Get(id);
+                if (achievement == null)
+                {
+                    response.Message = $"Game {id} not found.";
+                    response.Success = false;
+                }
+                else
+                {
+                    response.Data = mapper.Map<GetGameDto>(await _gameRepo.Get(id));
+                    response.Success = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Data = null;
+                response.Message = ex.Message;
+            }
+
+            return response;
+        }
+
         public Task<ServiceResponse<GetGameDto>> AddGame(AddGameDto newGame)
         {
             throw new NotImplementedException();
@@ -66,12 +94,6 @@ namespace HeffayPresentsAchievements.Services.GameService
         {
             throw new NotImplementedException();
         }
-
-        public Task<ServiceResponse<GetGameDto>> GetGameById(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
 
         public Task<ServiceResponse<GetGameDto>> UpdateGame(UpdateGameDto updateGame)
         {
