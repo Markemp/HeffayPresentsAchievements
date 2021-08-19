@@ -121,6 +121,7 @@ namespace HeffayPresentsAchievements.Services.AchievementService
 
                 if (achievement != null)
                 {
+                    // TODO:  Fix nullable stuff here
                     achievement.Name = updatedAchievement.Name ?? achievement.Name;
                     achievement.IsIncrementalAchievement = updatedAchievement.IsIncrementalAchievement;
                     achievement.IsDeleted = updatedAchievement.IsDeleted;

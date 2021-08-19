@@ -159,6 +159,53 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         }
 
         [TestMethod]
+        public async Task UpdateAchievement_Success()
+        {
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            gameRepo.Setup(p => p.Update(It.IsAny<Game>())).Returns(Task.FromResult(new Game()));
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            UpdateGameDto updatedGame = new(new Guid(), "updated game name");
+
+            var actualServiceResponse = await service.UpdateGame(updatedGame);
+
+            Assert.IsTrue(actualServiceResponse.Success);
+            Assert.IsNull(actualServiceResponse.Message);
+            Assert.IsNotNull(actualServiceResponse.Data);
+        }
+
+        [TestMethod]
+        public async Task UpdateGame_GameNotFound()
+        {
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Game?>(null));
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            UpdateGameDto updatedGame = new(new Guid(), "updated game name");
+
+            var actualServiceResponse = await service.UpdateGame(updatedGame);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.StartsWith("Game "));
+            Assert.IsNull(actualServiceResponse.Data);
+        }
+
+        [TestMethod]
+        public async Task UpdateGame_UpdateFailed()
+        {
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            gameRepo.Setup(p => p.Update(It.IsAny<Game>())).Throws(new Exception());
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            UpdateGameDto updatedGame = new(new Guid(), "updated game name");
+
+            var actualServiceResponse = await service.UpdateGame(updatedGame);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.Equals("Exception of type 'System.Exception' was thrown."));
+            Assert.IsNull(actualServiceResponse.Data);
+        }
+
+        [TestMethod]
         public async Task DeleteGame_Success()
         {
             gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(1));

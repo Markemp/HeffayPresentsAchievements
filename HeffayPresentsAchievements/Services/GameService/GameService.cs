@@ -142,9 +142,34 @@ namespace HeffayPresentsAchievements.Services.GameService
             return response;
         }
 
-        public Task<ServiceResponse<GetGameDto>> UpdateGame(UpdateGameDto updateGame)
+        public async Task<ServiceResponse<GetGameDto>> UpdateGame(UpdateGameDto updateGame)
         {
-            throw new NotImplementedException();
+            var response = new ServiceResponse<GetGameDto>();
+
+            try
+            {
+                var game = await gameRepo.Get(updateGame.Id);
+
+                if (game != null)
+                {
+                    game.Name = updateGame.Name;
+                    await gameRepo.Update(game);
+
+                    response.Data = mapper.Map<GetGameDto>(game);
+                }
+                else
+                {
+                    response.Success = false;
+                    response.Message = $"Game {updateGame.Name} not found.";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+
+            return response;
         }
     }
 }
