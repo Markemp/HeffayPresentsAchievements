@@ -13,18 +13,18 @@ namespace HeffayPresentsAchievements.Services.GameService
     public class GameService : IGameService
     {
         private readonly IMapper mapper;
-        private readonly IRepository<Achievement> _achievementRepo;
-        private readonly IRepository<Game> _gameRepo;
+        private readonly IRepository<Achievement> achievementRepo;
+        private readonly IRepository<Game> gameRepo;
         private readonly IHttpContextAccessor _httpContext;
 
         public GameService(IMapper mapper,
-            IRepository<Achievement> achievementRepo,
-            IRepository<Game> gameRepo,
+            IRepository<Achievement> achievementRepository,
+            IRepository<Game> gameRepository,
             IHttpContextAccessor httpContextAccessor)
         {
             this.mapper = mapper;
-            _achievementRepo = achievementRepo;
-            _gameRepo = gameRepo;
+            achievementRepo = achievementRepository;
+            gameRepo = gameRepository;
             _httpContext = httpContextAccessor;
         }
 
@@ -34,7 +34,7 @@ namespace HeffayPresentsAchievements.Services.GameService
             
             try
             {
-                var allGames = await _gameRepo.GetAll();
+                var allGames = await gameRepo.GetAll();
                 if (allGames.Any())
                 {
                     response.Data = allGames
@@ -63,7 +63,7 @@ namespace HeffayPresentsAchievements.Services.GameService
 
             try
             {
-                var achievement = await _gameRepo.Get(id);
+                var achievement = await gameRepo.Get(id);
                 if (achievement == null)
                 {
                     response.Message = $"Game {id} not found.";
@@ -71,7 +71,7 @@ namespace HeffayPresentsAchievements.Services.GameService
                 }
                 else
                 {
-                    response.Data = mapper.Map<GetGameDto>(await _gameRepo.Get(id));
+                    response.Data = mapper.Map<GetGameDto>(await gameRepo.Get(id));
                     response.Success = true;
                 }
             }
@@ -85,9 +85,32 @@ namespace HeffayPresentsAchievements.Services.GameService
             return response;
         }
 
-        public Task<ServiceResponse<GetGameDto>> AddGame(AddGameDto newGame)
+        public async Task<ServiceResponse<GetGameDto>> AddGame(AddGameDto newGameDto)
         {
-            throw new NotImplementedException();
+            var response = new ServiceResponse<GetGameDto>();
+
+            try
+            {
+                Game game = mapper.Map<Game>(newGameDto);
+                game.Id = Guid.NewGuid();
+                game.LastUpdated = DateTime.UtcNow;
+                var rowsChanged = await gameRepo.Add(game);
+                var newGame = await gameRepo.Get(game.Id);
+                response.Data = mapper.Map<GetGameDto>(newGame);
+                response.Message = $"Added {rowsChanged} row (should be 1).";
+            }
+            catch (ArgumentNullException ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+
+            return response;
         }
 
         public Task<ServiceResponse<List<GetGameDto>>> DeleteGame(Guid id)

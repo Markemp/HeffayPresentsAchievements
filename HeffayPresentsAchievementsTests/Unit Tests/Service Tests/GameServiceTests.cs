@@ -114,6 +114,51 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             Assert.IsFalse(actualServiceResponse.Success);
         }
 
+        [TestMethod]
+        public async Task AddGame_Success()
+        {
+            gameRepo.Setup(p => p.Add(It.IsAny<Game>())).Returns(Task.FromResult(1));
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+
+            var newGame = new AddGameDto("New Game", new Guid());
+
+            var actualServiceResponse = await service.AddGame(newGame);
+
+            Assert.AreEqual("Game 1", actualServiceResponse.Data!.Name);
+            Assert.AreEqual("Added 1 row (should be 1).", actualServiceResponse.Message);
+        }
+
+        [TestMethod]
+        public async Task AddGame_NullSubmitted_ThrowNullArgException()
+        {
+            gameRepo.Setup(p => p.Add(It.IsAny<Game>())).Throws(new ArgumentNullException());
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            AddGameDto? game = null;
+
+            var actualServiceResponse = await service.AddGame(game!);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.AreEqual("Object reference not set to an instance of an object.", actualServiceResponse.Message);
+        }
+
+        [TestMethod]
+        public async Task AddGame_GameSubmitted_ThrowException()
+        {
+            gameRepo.Setup(p => p.Add(It.IsAny<Game>())).Throws(new Exception());
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            AddGameDto game = new("New Game", new Guid());
+
+            var actualServiceResponse = await service.AddGame(game);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.StartsWith("Exception of type "));
+        }
+
+
         private async static Task<IEnumerable<Game?>> Seed()
         {
             var games = new List<Game?>
