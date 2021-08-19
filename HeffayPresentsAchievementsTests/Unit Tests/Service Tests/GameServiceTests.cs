@@ -158,6 +158,54 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             Assert.IsTrue(actualServiceResponse.Message!.StartsWith("Exception of type "));
         }
 
+        [TestMethod]
+        public async Task DeleteGame_Success()
+        {
+            gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(1));
+            gameRepo.Setup(p => p.GetAll()).Returns(Seed());
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            var idToDelete = new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7");
+
+            var actualServiceResponse = await service.DeleteGame(idToDelete);
+
+            Assert.IsTrue(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.Equals("Removed 1 rows."));
+            Assert.AreEqual(2, actualServiceResponse.Data!.Count);
+        }
+
+        [TestMethod]
+        public async Task DeleteAchievement_AchievementNotFound()
+        {
+            gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(0));
+            gameRepo.Setup(p => p.GetAll()).Returns(Seed());
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            var idToDelete = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
+
+            var actualServiceResponse = await service.DeleteGame(idToDelete);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.Equals("Game not found."));
+            Assert.IsNull(actualServiceResponse.Data);
+        }
+
+        [TestMethod]
+        public async Task DeleteAchievement_ExceptionThrown()
+        {
+            gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Throws(new Exception());
+            gameRepo.Setup(p => p.GetAll()).Returns(Seed());
+
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
+            var idToDelete = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
+
+            var actualServiceResponse = await service.DeleteGame(idToDelete);
+
+            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Message!.Equals("Exception of type 'System.Exception' was thrown."));
+            Assert.IsNull(actualServiceResponse.Data);
+        }
+
 
         private async static Task<IEnumerable<Game?>> Seed()
         {

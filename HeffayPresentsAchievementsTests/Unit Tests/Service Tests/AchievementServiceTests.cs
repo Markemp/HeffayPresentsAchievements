@@ -18,7 +18,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
     public class AchievementServiceTests
     {
         private IMapper? mapper;
-        private readonly Mock<IRepository<Achievement>> repo = new();
+        private readonly Mock<IRepository<Achievement>> achievementRepo = new();
         private readonly Mock<IRepository<Game>> gameRepo = new();
         private readonly Mock<IHttpContextAccessor> context = new();
         private Guid badGuid = new("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
@@ -34,9 +34,9 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task GetAllAchievements_ShouldReturnAllAchievements()
         {
-            repo.Setup(p => p.GetAll()).Returns(Seed()!);
+            achievementRepo.Setup(p => p.GetAll()).Returns(Seed()!);
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             var actualServiceResponse = await service.GetAllAchievements();
 
             var expectedServiceResponse = new ServiceResponse<List<GetAchievementDto>>
@@ -55,9 +55,9 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task GetAllAchievements_NoAchievementsReturned()
         {
-            repo.Setup(p => p.GetAll()).Returns(EmptyAchievementsList()!);
+            achievementRepo.Setup(p => p.GetAll()).Returns(EmptyAchievementsList()!);
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             var actualServiceResponse = await service.GetAllAchievements();
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -67,9 +67,9 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task GetAllAchievements_RepoUnavailable_FailedServiceResponse()
         {
-            repo.Setup(p => p.GetAll()).Throws(new Exception("Test message"));
+            achievementRepo.Setup(p => p.GetAll()).Throws(new Exception("Test message"));
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             var actualServiceResponse = await service.GetAllAchievements();
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -82,9 +82,9 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         {
             GetAchievementDto expectedAchievementDto = mapper!.Map<GetAchievementDto>(Seed().Result.ToList()[0]);
 
-            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            achievementRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
             
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
 
             var actualServiceResponse = await service.GetAchievementById(new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7"));
 
@@ -95,9 +95,9 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task GetAchievementById_AchievementNotFound_SuccessFalseAndNotFoundMessage()
         {
-            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Achievement?>(null));
+            achievementRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Achievement?>(null));
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
 
             var actualServiceResponse = await service.GetAchievementById(badGuid);
 
@@ -109,9 +109,9 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task GetAchievementById_RepoUnavailable_FailedServiceResponse()
         {
-            repo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new Exception("Test message"));
+            achievementRepo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new Exception("Test message"));
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             var actualServiceResponse = await service.GetAchievementById(badGuid);
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -122,10 +122,10 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task AddAchievement_Success()
         {
-            repo.Setup(p => p.Add(It.IsAny<Achievement>())).Returns(Task.FromResult(1));
-            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            achievementRepo.Setup(p => p.Add(It.IsAny<Achievement>())).Returns(Task.FromResult(1));
+            achievementRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
 
             var newAchievement = new AddAchievementDto
             {
@@ -144,9 +144,9 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task AddAchievement_NullSubmitted_ThrowNullArgException()
         {
-            repo.Setup(p => p.Add(It.IsAny<Achievement>())).Throws(new ArgumentNullException());
+            achievementRepo.Setup(p => p.Add(It.IsAny<Achievement>())).Throws(new ArgumentNullException());
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             AddAchievementDto? ach = null;
 
             var actualServiceResponse = await service.AddAchievement(ach!);
@@ -158,9 +158,9 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task AddAchievement_AchievementSubmitted_ThrowException()
         {
-            repo.Setup(p => p.Add(It.IsAny<Achievement>())).Throws(new Exception());
+            achievementRepo.Setup(p => p.Add(It.IsAny<Achievement>())).Throws(new Exception());
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             AddAchievementDto ach = new();
 
             var actualServiceResponse = await service.AddAchievement(ach);
@@ -172,10 +172,10 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task UpdateAchievement_Success()
         {
-            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
-            repo.Setup(p => p.Update(It.IsAny<Achievement>())).Returns(Task.FromResult(new Achievement()));
+            achievementRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            achievementRepo.Setup(p => p.Update(It.IsAny<Achievement>())).Returns(Task.FromResult(new Achievement()));
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             UpdateAchievementDto ach = new();
 
             var actualServiceResponse = await service.UpdateAchievement(ach);
@@ -188,9 +188,9 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task UpdateAchievement_AchievementNotFound()
         {
-            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Achievement?>(null));
+            achievementRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Achievement?>(null));
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             UpdateAchievementDto ach = new();
 
             var actualServiceResponse = await service.UpdateAchievement(ach);
@@ -203,10 +203,10 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task UpdateAchievement_UpdateFailed()
         {
-            repo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
-            repo.Setup(p => p.Update(It.IsAny<Achievement>())).Throws(new Exception());
+            achievementRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            achievementRepo.Setup(p => p.Update(It.IsAny<Achievement>())).Throws(new Exception());
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             UpdateAchievementDto ach = new();
 
             var actualServiceResponse = await service.UpdateAchievement(ach);
@@ -220,10 +220,10 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task DeleteAchievement_Success()
         {
-            repo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(1));
-            repo.Setup(p => p.GetAll()).Returns(Seed());
+            achievementRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(1));
+            achievementRepo.Setup(p => p.GetAll()).Returns(Seed());
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             var idToDelete = new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7");
 
             var actualServiceResponse = await service.DeleteAchievement(idToDelete);
@@ -236,10 +236,10 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task DeleteAchievement_AchievementNotFound()
         {
-            repo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(0));
-            repo.Setup(p => p.GetAll()).Returns(Seed());
+            achievementRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(0));
+            achievementRepo.Setup(p => p.GetAll()).Returns(Seed());
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             var idToDelete = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
             var actualServiceResponse = await service.DeleteAchievement(idToDelete);
@@ -252,10 +252,10 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
         [TestMethod]
         public async Task DeleteAchievement_ExceptionThrown()
         {
-            repo.Setup(p => p.Remove(It.IsAny<Guid>())).Throws(new Exception());
-            repo.Setup(p => p.GetAll()).Returns(Seed());
+            achievementRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Throws(new Exception());
+            achievementRepo.Setup(p => p.GetAll()).Returns(Seed());
 
-            var service = new AchievementService(mapper!, repo.Object, gameRepo.Object, context.Object);
+            var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
             var idToDelete = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
             var actualServiceResponse = await service.DeleteAchievement(idToDelete);
@@ -264,7 +264,6 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
             Assert.IsTrue(actualServiceResponse.Message!.Equals("Exception of type 'System.Exception' was thrown."));
             Assert.IsNull(actualServiceResponse.Data);
         }
-
 
         private static List<GetAchievementDto> GetExpectedAchievements()
         {
@@ -400,5 +399,4 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
             return achievements.AsEnumerable();
         }
     }
-
 }

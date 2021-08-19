@@ -38,7 +38,7 @@ namespace HeffayPresentsAchievements.Services.GameService
                 if (allGames.Any())
                 {
                     response.Data = allGames
-                        .Where(g => g.IsDeleted == false)
+                        .Where(g => g != null && g.IsDeleted == false)
                         .Select(g => mapper.Map<GetGameDto>(g))
                         .ToList();
                 }
@@ -113,9 +113,33 @@ namespace HeffayPresentsAchievements.Services.GameService
             return response;
         }
 
-        public Task<ServiceResponse<List<GetGameDto>>> DeleteGame(Guid id)
+        public async Task<ServiceResponse<List<GetGameDto>>> DeleteGame(Guid id)
         {
-            throw new NotImplementedException();
+            var response = new ServiceResponse<List<GetGameDto>>();
+
+            try
+            {
+                var rowsAffected = await gameRepo.Remove(id);
+                response.Message = $"Removed {rowsAffected} rows.";
+
+                if (rowsAffected != 0)
+                {
+                    var allGames = await gameRepo.GetAll();
+                    response.Data = allGames.Where(a => a != null && a.IsDeleted == false).Select(a => mapper.Map<GetGameDto>(a)).ToList();
+                }
+                else
+                {
+                    response.Message = "Game not found.";
+                    response.Success = false;
+                }
+            }   
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                response.Success = false;
+            }
+
+            return response;
         }
 
         public Task<ServiceResponse<GetGameDto>> UpdateGame(UpdateGameDto updateGame)

@@ -28,5 +28,17 @@ namespace HeffayPresentsAchievements.Controllers
         {
             return Ok(await _service.GetGameById(id));
         }
+
+        [HttpPost]
+        public async Task<ActionResult<ServiceResponse<GetGameDto>>> AddGame(AddGameDto game)
+        {
+            return Ok(await _service.AddGame(game));
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult<ServiceResponse<List<Game>>>> DeleteGame(Guid id)
+        {
+            return Ok(await _service.DeleteGame(id));
+        }
     }
 }
