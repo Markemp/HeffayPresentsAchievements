@@ -127,13 +127,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
 
             var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
 
-            var newAchievement = new AddAchievementDto
-            {
-                AchievementType = AchievementType.Visible,
-                IsIncrementalAchievement = false,
-                Name = "New Achievement",
-                Points = 10
-            };
+            var newAchievement = new AddAchievementDto("New Achivement 1", 10, false, false, AchievementType.Visible, new Guid());
 
             var actualServiceResponse = await service.AddAchievement(newAchievement);
 
@@ -161,7 +155,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
             achievementRepo.Setup(p => p.Add(It.IsAny<Achievement>())).Throws(new Exception());
 
             var service = new AchievementService(mapper!, achievementRepo.Object, gameRepo.Object, context.Object);
-            AddAchievementDto ach = new();
+            AddAchievementDto ach = new("Test", 10, false, false, AchievementType.Visible, new Guid());
 
             var actualServiceResponse = await service.AddAchievement(ach);
 
