@@ -2,7 +2,7 @@
 
 namespace HeffayPresentsAchievements.Models
 {
-    public class BaseEntity
+    public abstract class BaseEntity
     {
         public Guid Id { get; set; }
         public DateTime DateCreated { get; set; }

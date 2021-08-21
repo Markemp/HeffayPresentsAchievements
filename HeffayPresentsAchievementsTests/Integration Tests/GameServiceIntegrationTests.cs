@@ -95,6 +95,63 @@ namespace HeffayPresentsAchievementsTests.Integration_Tests
             Assert.AreEqual(id2, checkResult2.Data!.Id);
         }
 
+        [TestMethod]
+        public async Task UpdateGame()
+        {
+            // Verify db empty, add an achievement, verify it exists
+            var newGame = new AddGameDto("Update Game Test",new Guid());
+
+            var service = new GameService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
+
+            var addResult = await service.AddGame(newGame);
+            Assert.IsTrue(addResult.Success);
+
+            var game = addResult.Data!;
+
+            var updateGame = new UpdateGameDto(game.Id, game.Name);
+
+            // No values changed
+            var updateResult = await service.UpdateGame(updateGame);
+            Assert.IsTrue(updateResult.Success);
+            Assert.AreEqual("Update Game Test", updateResult.Data!.Name);
+
+            // Values changed
+            var updateGame2 = new UpdateGameDto(game.Id, "Updated Name");
+
+            updateResult = await service.UpdateGame(updateGame2);
+            Assert.AreEqual("Updated Name", updateResult.Data!.Name);
+
+            // Values changed again
+            var updateGame3 = new UpdateGameDto(game.Id, "New Updated Name");
+            var updateResult2 = await service.UpdateGame(updateGame3);
+
+            Assert.AreEqual("New Updated Name", updateResult2.Data!.Name);
+            Assert.AreEqual(updateGame.Id, updateResult2.Data.Id);
+        }
+
+        [TestMethod]
+        public async Task DeleteGame()
+        {
+            // Verify db empty, add an achievement, verify it exists
+            var newGame = new AddGameDto("Delete Game Test", new Guid());
+
+            var service = new GameService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
+
+            var addResult = await service.AddGame(newGame);
+
+            // Delete non-existant achievement
+            var deleteResult = await service.DeleteGame(Guid.Empty);
+            Assert.IsFalse(deleteResult.Success);
+            Assert.AreEqual("Game not found.", deleteResult.Message);
+
+            // Delete added achievement
+            var deleteResult2 = await service.DeleteGame(addResult.Data!.Id);
+            Assert.IsTrue(deleteResult2.Success);
+            Assert.IsTrue(deleteResult2.Message!.StartsWith("Removed 1 rows."));
+            var checkAchievement = await service.GetGameById(addResult.Data!.Id);
+            Assert.IsFalse(checkAchievement.Success);
+        }
+
         private static DataContext CreateContext(DbContextOptions<DataContext> options) => new(options);
     }
 }
