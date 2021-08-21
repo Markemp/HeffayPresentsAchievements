@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HeffayPresentsAchievements.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20210815174537_UserUpdate")]
-    partial class UserUpdate
+    [Migration("20210821134503_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -61,11 +61,7 @@ namespace HeffayPresentsAchievements.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("PercentageUnlocked")
-                        .HasColumnType("real");
 
                     b.Property<int>("Points")
                         .HasColumnType("int");
@@ -85,6 +81,9 @@ namespace HeffayPresentsAchievements.Migrations
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");

@@ -61,9 +61,6 @@ namespace HeffayPresentsAchievements.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<float>("PercentageUnlocked")
-                        .HasColumnType("real");
-
                     b.Property<int>("Points")
                         .HasColumnType("int");
 
@@ -82,6 +79,9 @@ namespace HeffayPresentsAchievements.Migrations
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");

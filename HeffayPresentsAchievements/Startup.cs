@@ -9,6 +9,7 @@ using HeffayPresentsAchievements.Data;
 using Microsoft.EntityFrameworkCore;
 using HeffayPresentsAchievements.Services.Repository;
 using Microsoft.AspNetCore.Http;
+using HeffayPresentsAchievements.Services.GameService;
 
 namespace HeffayPresentsAchievements
 {
@@ -37,6 +38,7 @@ namespace HeffayPresentsAchievements
             services.AddAutoMapper(typeof(Startup));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IAchievementService, AchievementService>();
+            services.AddScoped<IGameService, GameService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 
