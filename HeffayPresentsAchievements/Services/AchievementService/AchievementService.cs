@@ -6,7 +6,6 @@ using AutoMapper;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Services.Repository;
-using Microsoft.AspNetCore.Http;
 
 namespace HeffayPresentsAchievements.Services.AchievementService
 {
@@ -15,17 +14,14 @@ namespace HeffayPresentsAchievements.Services.AchievementService
         private readonly IMapper mapper;
         private readonly IRepository<Achievement> achievementRepo;
         private readonly IRepository<Game> gameRepo;
-        private readonly IHttpContextAccessor _httpContext;
 
         public AchievementService(IMapper mapper, 
             IRepository<Achievement> achievementRepository, 
-            IRepository<Game> gameRepository,
-            IHttpContextAccessor httpContextAccessor)
+            IRepository<Game> gameRepository)
         {
             this.mapper = mapper;
             achievementRepo = achievementRepository;
             gameRepo = gameRepository; 
-            _httpContext = httpContextAccessor;
         }
 
         public async Task<ServiceResponse<List<GetAchievementDto>>> GetAllAchievements()

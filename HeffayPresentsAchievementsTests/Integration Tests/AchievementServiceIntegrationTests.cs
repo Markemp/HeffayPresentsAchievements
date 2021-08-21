@@ -20,7 +20,6 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
         private Mapper? mapper;
         private Repository<Achievement>? _achievementRepo;
         private Repository<Game>? _gameRepo;
-        private HttpContextAccessor? _httpContext = new();
         private DbContextOptions<DataContext>? options;
 
         [TestInitialize]
@@ -47,7 +46,7 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             // Verify db empty, add an achievement, verify it exists
             var newAchievement = new AddAchievementDto("Achievement 01", 10, false, false, AchievementType.Visible, new Guid());
 
-            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
+            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!);
 
             var initialResult = await service.GetAllAchievements();
             Assert.IsTrue(initialResult.Success);
@@ -73,7 +72,7 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             var newAchievement1 = new AddAchievementDto("Achievement 01", 10, false, false, AchievementType.Visible, new Guid());
             var newAchievement2 = new AddAchievementDto("Achievement 02", 20, false, false, AchievementType.Visible, new Guid());
 
-            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
+            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!);
 
             var addResult = await service.AddAchievement(newAchievement1);
             var addResult2 = await service.AddAchievement(newAchievement2);
@@ -98,7 +97,7 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             // Verify db empty, add an achievement, verify it exists
             var newAchievement = new AddAchievementDto("Update Achievement Test", 10, false, false, AchievementType.Visible, new Guid());
 
-            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
+            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!);
 
             var addResult = await service.AddAchievement(newAchievement);
             Assert.IsTrue(addResult.Success);
@@ -146,7 +145,7 @@ namespace HeffayPresentsAchievementsTests.IntegrationTests
             // Verify db empty, add an achievement, verify it exists
             var newAchievement = new AddAchievementDto("Delete Achievement Test", 10, false, false, AchievementType.Visible, new Guid());
 
-            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
+            var service = new AchievementService(mapper!, _achievementRepo!, _gameRepo!);
 
             var addResult = await service.AddAchievement(newAchievement);
 
