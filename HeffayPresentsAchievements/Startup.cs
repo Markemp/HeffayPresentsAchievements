@@ -39,6 +39,7 @@ namespace HeffayPresentsAchievements
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IAchievementService, AchievementService>();
             services.AddScoped<IGameService, GameService>();
+            services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 

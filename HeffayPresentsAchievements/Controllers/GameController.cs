@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace HeffayPresentsAchievements.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
     public class GameController : ControllerBase
     {
         private readonly IGameService _service;
@@ -26,7 +28,12 @@ namespace HeffayPresentsAchievements.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ServiceResponse<GetGameDto>>> GetGame(Guid id)
         {
-            return Ok(await _service.GetGameById(id));
+            var response = await _service.GetGameById(id);
+            if (response.Success == false)
+            {
+                return NotFound(response);
+            }
+            return Ok(response);
         }
 
         [HttpPost]
@@ -35,10 +42,26 @@ namespace HeffayPresentsAchievements.Controllers
             return Ok(await _service.AddGame(game));
         }
 
+        [HttpPut]
+        public async Task<ActionResult<ServiceResponse<GetGameDto>>> UpdateAchievement(UpdateGameDto updatedGame)
+        {
+            var response = await _service.UpdateGame(updatedGame);
+            if (response.Data == null)
+            {
+                return NotFound(response);
+            }
+            return Ok(response);
+        }
+
         [HttpDelete]
         public async Task<ActionResult<ServiceResponse<List<Game>>>> DeleteGame(Guid id)
         {
-            return Ok(await _service.DeleteGame(id));
+            var response = await _service.DeleteGame(id);
+            if (response.Success == false)
+            {
+                return NotFound(response);
+            }
+            return Ok(response);
         }
     }
 }
