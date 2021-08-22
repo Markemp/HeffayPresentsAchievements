@@ -13,9 +13,9 @@ namespace HeffayPresentsAchievements.Services.GameService
 {
     public class GameService : IGameService
     {
-        private readonly IMapper mapper;
-        private readonly IRepository<Achievement> achievementRepo;
-        private readonly IRepository<Game> gameRepo;
+        private readonly IMapper _mapper;
+        private readonly IRepository<Achievement> _achievementRepo;
+        private readonly IRepository<Game> _gameRepo;
         private readonly IHttpContextAccessor _httpContext;
 
         private Guid GetUserId() => Guid.Parse(_httpContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -25,9 +25,9 @@ namespace HeffayPresentsAchievements.Services.GameService
             IRepository<Game> gameRepository,
             IHttpContextAccessor httpContext)
         {
-            this.mapper = mapper;
-            achievementRepo = achievementRepository;
-            gameRepo = gameRepository;
+            _mapper = mapper;
+            _achievementRepo = achievementRepository;
+            _gameRepo = gameRepository;
             _httpContext = httpContext;
         }
 
@@ -37,12 +37,12 @@ namespace HeffayPresentsAchievements.Services.GameService
             
             try
             {
-                var allGames = await gameRepo.GetAll();
+                var allGames = await _gameRepo.GetAllForId(GetUserId());
                 if (allGames.Any())
                 {
                     response.Data = allGames
                         .Where(g => g != null && g.IsDeleted == false)
-                        .Select(g => mapper.Map<GetGameDto>(g))
+                        .Select(g => _mapper.Map<GetGameDto>(g))
                         .ToList();
                 }
                 else
@@ -60,22 +60,30 @@ namespace HeffayPresentsAchievements.Services.GameService
             return response;
         }
 
-        public async Task<ServiceResponse<GetGameDto>> GetGameById(Guid id)
+        public async Task<ServiceResponse<GetGameDto>> GetGameById(Guid gameId)
         {
             var response = new ServiceResponse<GetGameDto>();
 
             try
             {
-                var achievement = await gameRepo.Get(id);
-                if (achievement == null)
+                var game = await _gameRepo.Get(gameId);
+                if (game == null)
                 {
-                    response.Message = $"Game {id} not found.";
+                    response.Message = $"Game {gameId} not found.";
                     response.Success = false;
                 }
                 else
                 {
-                    response.Data = mapper.Map<GetGameDto>(await gameRepo.Get(id));
-                    response.Success = true;
+                    if (game.Users != null && game.Users.Any(u => u.Id == GetUserId()))
+                    {
+                        response.Data = _mapper.Map<GetGameDto>(await _gameRepo.Get(gameId));
+                        response.Success = true;
+                    }
+                    else
+                    {
+                        response.Success = false;
+                        response.Message = $"Game {gameId} not found.";
+                    }
                 }
             }
             catch (Exception ex)
@@ -94,12 +102,12 @@ namespace HeffayPresentsAchievements.Services.GameService
 
             try
             {
-                Game game = mapper.Map<Game>(newGameDto);
+                Game game = _mapper.Map<Game>(newGameDto);
                 game.Id = Guid.NewGuid();
                 game.LastUpdated = DateTime.UtcNow;
-                var rowsChanged = await gameRepo.Add(game);
-                var newGame = await gameRepo.Get(game.Id);
-                response.Data = mapper.Map<GetGameDto>(newGame);
+                var rowsChanged = await _gameRepo.Add(game);
+                var newGame = await _gameRepo.Get(game.Id);
+                response.Data = _mapper.Map<GetGameDto>(newGame);
                 response.Message = $"Added {rowsChanged} row (should be 1).";
             }
             catch (ArgumentNullException ex)
@@ -122,13 +130,13 @@ namespace HeffayPresentsAchievements.Services.GameService
 
             try
             {
-                var rowsAffected = await gameRepo.Remove(id);
+                var rowsAffected = await _gameRepo.Remove(id);
                 response.Message = $"Removed {rowsAffected} rows.";
 
                 if (rowsAffected != 0)
                 {
-                    var allGames = await gameRepo.GetAll();
-                    response.Data = allGames.Where(a => a != null && a.IsDeleted == false).Select(a => mapper.Map<GetGameDto>(a)).ToList();
+                    var allGames = await _gameRepo.GetAll();
+                    response.Data = allGames.Where(a => a != null && a.IsDeleted == false).Select(a => _mapper.Map<GetGameDto>(a)).ToList();
                 }
                 else
                 {
@@ -151,14 +159,14 @@ namespace HeffayPresentsAchievements.Services.GameService
 
             try
             {
-                var game = await gameRepo.Get(updateGame.Id);
+                var game = await _gameRepo.Get(updateGame.Id);
 
                 if (game != null)
                 {
                     game.Name = updateGame.Name;
-                    await gameRepo.Update(game);
+                    await _gameRepo.Update(game);
 
-                    response.Data = mapper.Map<GetGameDto>(game);
+                    response.Data = _mapper.Map<GetGameDto>(game);
                 }
                 else
                 {

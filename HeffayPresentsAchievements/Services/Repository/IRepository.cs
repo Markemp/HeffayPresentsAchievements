@@ -9,6 +9,7 @@ namespace HeffayPresentsAchievements.Services.Repository
     public interface IRepository<T> where T : BaseEntity
     {
         public Task<IEnumerable<T?>> GetAll();
+        public Task<IEnumerable<T?>> GetAllForId(Guid id);
         public Task<T?> Get(Guid Id);
         public Task<int> Add(T entity);
         public Task<int> AddRange(IEnumerable<T> entities);

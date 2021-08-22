@@ -21,12 +21,18 @@ namespace HeffayPresentsAchievements.Services.Repository
 
         public async Task<IEnumerable<T?>> GetAll()
         {
-            return entities.AsEnumerable();
+            return await entities.ToListAsync();
+        }
+
+        public async Task<IEnumerable<T?>> GetAllForId(Guid id)
+        {
+            var allEntities = await entities.AsQueryable().Where(a => a.Id.Equals(id)).ToListAsync();
+            return allEntities;
         }
 
         public async Task<T?> Get(Guid Id)
         {
-            return entities.SingleOrDefault(a => a.Id == Id);
+            return await entities.SingleOrDefaultAsync(a => a.Id == Id);
         }
 
         public async Task<int> Add(T record)

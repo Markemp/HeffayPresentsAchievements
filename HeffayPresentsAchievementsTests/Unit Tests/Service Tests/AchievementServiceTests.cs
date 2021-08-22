@@ -312,7 +312,7 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
 
         private async static Task<IEnumerable<Achievement?>> Seed()
         {
-            var achievements = new List<Achievement?>
+            var achievements = await Task.Run(() => new List<Achievement?>
             {
                 new Achievement
                 {
@@ -380,14 +380,14 @@ namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
                     LastUpdated = DateTime.UtcNow,
                     Points = 10
                 }
-            };
+            });
 
             return achievements.AsEnumerable();
         }
 
         private async static Task<IEnumerable<Achievement?>> EmptyAchievementsList()
         {
-            var achievements = new List<Achievement?>();
+            var achievements = await Task.Run(() => new List<Achievement?>());
             return achievements.AsEnumerable();
         }
     }
