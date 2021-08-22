@@ -4,6 +4,7 @@ using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Models.Dtos.Game;
 using HeffayPresentsAchievements.Services.GameService;
 using HeffayPresentsAchievements.Services.Repository;
+using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
@@ -19,6 +20,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         private IMapper? mapper;
         private readonly Mock<IRepository<Achievement>> achievementRepo = new();
         private readonly Mock<IRepository<Game>> gameRepo = new();
+        private readonly Mock<IHttpContextAccessor> httpContext = new();
         private Guid badGuid = new("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
         [TestInitialize]
@@ -34,7 +36,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.GetAll()).Returns(Seed()!);
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             var actualServiceResponse = await service.GetAllGames();
 
             Assert.IsNotNull(actualServiceResponse.Data);
@@ -48,7 +50,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.GetAll()).Returns(EmptyGamesList());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             var actualServiceResponse = await service.GetAllGames();
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -61,7 +63,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.GetAll()).Throws(new Exception("Test message"));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             var actualServiceResponse = await service.GetAllGames();
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -76,7 +78,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
 
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
 
             var actualServiceResponse = await service.GetGameById(new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7"));
 
@@ -89,7 +91,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Game?>(null));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
 
             var actualServiceResponse = await service.GetGameById(badGuid);
 
@@ -103,7 +105,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new Exception("Test message"));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             var actualServiceResponse = await service.GetGameById(badGuid);
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -117,7 +119,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             gameRepo.Setup(p => p.Add(It.IsAny<Game>())).Returns(Task.FromResult(1));
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
 
             var newGame = new AddGameDto("New Game", new Guid());
 
@@ -132,7 +134,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Add(It.IsAny<Game>())).Throws(new ArgumentNullException());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             AddGameDto? game = null;
 
             var actualServiceResponse = await service.AddGame(game!);
@@ -146,7 +148,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Add(It.IsAny<Game>())).Throws(new Exception());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             AddGameDto game = new("New Game", new Guid());
 
             var actualServiceResponse = await service.AddGame(game);
@@ -161,7 +163,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
             gameRepo.Setup(p => p.Update(It.IsAny<Game>())).Returns(Task.FromResult(new Game()));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             UpdateGameDto updatedGame = new(new Guid(), "updated game name");
 
             var actualServiceResponse = await service.UpdateGame(updatedGame);
@@ -176,7 +178,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Game?>(null));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             UpdateGameDto updatedGame = new(new Guid(), "updated game name");
 
             var actualServiceResponse = await service.UpdateGame(updatedGame);
@@ -192,7 +194,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
             gameRepo.Setup(p => p.Update(It.IsAny<Game>())).Throws(new Exception());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             UpdateGameDto updatedGame = new(new Guid(), "updated game name");
 
             var actualServiceResponse = await service.UpdateGame(updatedGame);
@@ -208,7 +210,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(1));
             gameRepo.Setup(p => p.GetAll()).Returns(Seed());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             var idToDelete = new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7");
 
             var actualServiceResponse = await service.DeleteGame(idToDelete);
@@ -224,7 +226,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(0));
             gameRepo.Setup(p => p.GetAll()).Returns(Seed());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             var idToDelete = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
             var actualServiceResponse = await service.DeleteGame(idToDelete);
@@ -240,7 +242,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Throws(new Exception());
             gameRepo.Setup(p => p.GetAll()).Returns(Seed());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object);
+            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, httpContext.Object);
             var idToDelete = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
             var actualServiceResponse = await service.DeleteGame(idToDelete);

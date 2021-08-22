@@ -5,9 +5,11 @@ using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Services.AchievementService;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HeffayPresentsAchievements.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class AchievementController : ControllerBase

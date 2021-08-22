@@ -2,9 +2,11 @@
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Models.Dtos.Game;
 using HeffayPresentsAchievements.Services.Repository;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace HeffayPresentsAchievements.Services.GameService
@@ -14,14 +16,19 @@ namespace HeffayPresentsAchievements.Services.GameService
         private readonly IMapper mapper;
         private readonly IRepository<Achievement> achievementRepo;
         private readonly IRepository<Game> gameRepo;
+        private readonly IHttpContextAccessor _httpContext;
+
+        private Guid GetUserId() => Guid.Parse(_httpContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         public GameService(IMapper mapper,
             IRepository<Achievement> achievementRepository,
-            IRepository<Game> gameRepository)
+            IRepository<Game> gameRepository,
+            IHttpContextAccessor httpContext)
         {
             this.mapper = mapper;
             achievementRepo = achievementRepository;
             gameRepo = gameRepository;
+            _httpContext = httpContext;
         }
 
         public async Task<ServiceResponse<List<GetGameDto>>> GetAllGames()
