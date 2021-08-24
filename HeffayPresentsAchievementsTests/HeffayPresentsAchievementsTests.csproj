@@ -22,4 +22,8 @@
     <ProjectReference Include="..\HeffayPresentsAchievements\HeffayPresentsAchievements.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TestUtilities\" />
+  </ItemGroup>
+
 </Project>

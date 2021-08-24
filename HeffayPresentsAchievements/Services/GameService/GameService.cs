@@ -18,7 +18,13 @@ namespace HeffayPresentsAchievements.Services.GameService
         private readonly IRepository<Game> _gameRepo;
         private readonly IHttpContextAccessor _httpContext;
 
-        private Guid GetUserId() => Guid.Parse(_httpContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        private Guid GetUserId()
+        {
+            if (_httpContext.HttpContext != null)
+                return Guid.Parse(_httpContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            else
+                throw new ApplicationException("Unable to find HttpContext for request.");
+        }
 
         public GameService(IMapper mapper,
             IRepository<Achievement> achievementRepository,
