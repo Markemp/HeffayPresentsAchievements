@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using HeffayPresentsAchievements;
+using HeffayPresentsAchievements.Data;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Services.AchievementService;

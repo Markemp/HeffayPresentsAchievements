@@ -109,8 +109,11 @@ namespace HeffayPresentsAchievements.Services.GameService
             try
             {
                 Game game = _mapper.Map<Game>(newGameDto);
+
                 game.Id = Guid.NewGuid();
                 game.LastUpdated = DateTime.UtcNow;
+                game.Users.Add(userRepository.GetById(GetUserId()));
+                
                 var rowsChanged = await _gameRepo.Add(game);
                 var newGame = await _gameRepo.Get(game.Id);
                 response.Data = _mapper.Map<GetGameDto>(newGame);
