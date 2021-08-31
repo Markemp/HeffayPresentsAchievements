@@ -2,6 +2,7 @@
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Models.Dtos.Game;
+using HeffayPresentsAchievements.Models.Dtos.User;
 
 namespace HeffayPresentsAchievements
 {
@@ -15,6 +16,8 @@ namespace HeffayPresentsAchievements
 
             CreateMap<Game, GetGameDto>().ReverseMap();
             CreateMap<Game, AddGameDto>().ReverseMap();
+
+            CreateMap<User, GetUserDto>().ReverseMap();
 
         }
     }

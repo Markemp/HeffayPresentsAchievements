@@ -18,14 +18,6 @@ namespace HeffayPresentsAchievements.Services.GameService
         private readonly IRepository<Game> _gameRepo;
         private readonly IHttpContextAccessor _httpContext;
 
-        private Guid GetUserId()
-        {
-            if (_httpContext.HttpContext != null)
-                return Guid.Parse(_httpContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-            else
-                throw new ApplicationException("Unable to find HttpContext for request.");
-        }
-
         public GameService(IMapper mapper,
             IRepository<Achievement> achievementRepository,
             IRepository<Game> gameRepository,
@@ -35,6 +27,14 @@ namespace HeffayPresentsAchievements.Services.GameService
             _achievementRepo = achievementRepository;
             _gameRepo = gameRepository;
             _httpContext = httpContext;
+        }
+
+        private Guid GetUserId()
+        {
+            if (_httpContext.HttpContext != null)
+                return Guid.Parse(_httpContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            else
+                throw new ApplicationException("Unable to find HttpContext for request.");
         }
 
         public async Task<ServiceResponse<List<GetGameDto>>> GetAllGames()
@@ -112,7 +112,7 @@ namespace HeffayPresentsAchievements.Services.GameService
 
                 game.Id = Guid.NewGuid();
                 game.LastUpdated = DateTime.UtcNow;
-                game.Users.Add(userRepository.GetById(GetUserId()));
+                //game.Users.Add(userRepository.GetById(GetUserId()));
                 
                 var rowsChanged = await _gameRepo.Add(game);
                 var newGame = await _gameRepo.Get(game.Id);

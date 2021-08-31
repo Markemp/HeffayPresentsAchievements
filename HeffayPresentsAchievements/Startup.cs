@@ -13,6 +13,7 @@ using HeffayPresentsAchievements.Services.GameService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Filters;
+using HeffayPresentsAchievements.Services.UserService;
 
 namespace HeffayPresentsAchievements
 {
@@ -50,6 +51,7 @@ namespace HeffayPresentsAchievements
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IAchievementService, AchievementService>();
             services.AddScoped<IGameService, GameService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

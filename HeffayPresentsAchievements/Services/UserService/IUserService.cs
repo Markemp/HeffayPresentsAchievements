@@ -10,7 +10,6 @@ namespace HeffayPresentsAchievements.Services.UserService
     public interface IUserService
     {
         Task<ServiceResponse<List<GetUserDto>>> GetAllUsers();
-        Task<ServiceResponse<GetUserDto>> Login(UserLoginDto user);
         Task<ServiceResponse<GetGameDto>> AddGameToUser(Guid gameId);
         Task<ServiceResponse<List<GetGameDto>>> RemoveGameFromUser(Guid gameId);
     }
