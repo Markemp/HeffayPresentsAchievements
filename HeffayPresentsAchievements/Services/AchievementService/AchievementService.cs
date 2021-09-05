@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using HeffayPresentsAchievements.Dtos.Achievement;
 using HeffayPresentsAchievements.Models;
+using HeffayPresentsAchievements.Services.GameService;
 using HeffayPresentsAchievements.Services.Repository;
 
 namespace HeffayPresentsAchievements.Services.AchievementService
@@ -13,15 +14,12 @@ namespace HeffayPresentsAchievements.Services.AchievementService
     {
         private readonly IMapper _mapper;
         private readonly IRepository<Achievement> _achievementRepo;
-        private readonly IRepository<Game> _gameRepo;
 
         public AchievementService(IMapper mapper, 
-            IRepository<Achievement> achievementRepository, 
-            IRepository<Game> gameRepository)
+            IRepository<Achievement> achievementRepository)
         {
             _mapper = mapper;
             _achievementRepo = achievementRepository;
-            _gameRepo = gameRepository; 
         }
 
         public async Task<ServiceResponse<List<GetAchievementDto>>> GetAllAchievements()
@@ -88,7 +86,6 @@ namespace HeffayPresentsAchievements.Services.AchievementService
                 Achievement achievement = _mapper.Map<Achievement>(newAchievement);
                 achievement.Id = Guid.NewGuid();
                 achievement.LastUpdated = DateTime.UtcNow;
-                achievement.Game = await _gameRepo.Get(newAchievement.GameId);
                 var rowsChanged = await _achievementRepo.Add(achievement);
                 var newAch = await _achievementRepo.Get(achievement.Id);
                 response.Data = _mapper.Map<GetAchievementDto>(newAch);

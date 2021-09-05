@@ -1,4 +1,5 @@
 ﻿using HeffayPresentsAchievements.Models;
+using HeffayPresentsAchievements.Models.Dtos.Game;
 using HeffayPresentsAchievements.Models.Dtos.User;
 using HeffayPresentsAchievements.Services.UserService;
 using Microsoft.AspNetCore.Authorization;
@@ -23,11 +24,16 @@ namespace HeffayPresentsAchievements.Controllers
             _userService = userService;
         }
 
-        [HttpGet("GetAll")]
+        [HttpGet("GetAllUsers")]
         public async Task<ActionResult<ServiceResponse<List<GetUserDto>>>> GetAllUsers()
         {
-            Guid id = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value);
             return Ok(await _userService.GetAllUsers());
+        }
+
+        [HttpGet("GetAllGames")]
+        public async Task<ActionResult<ServiceResponse<List<GetGameDto>>>> GetAllGames()
+        {
+            return Ok(await _userService.GetAllGames());
         }
     }
 }

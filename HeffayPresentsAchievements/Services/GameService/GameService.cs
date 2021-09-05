@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Models.Dtos.Game;
+using HeffayPresentsAchievements.Services.AchievementService;
 using HeffayPresentsAchievements.Services.Repository;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -14,17 +15,17 @@ namespace HeffayPresentsAchievements.Services.GameService
     public class GameService : IGameService
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<Achievement> _achievementRepo;
+        private readonly IAchievementService _achievementService;
         private readonly IRepository<Game> _gameRepo;
         private readonly IHttpContextAccessor _httpContext;
 
         public GameService(IMapper mapper,
-            IRepository<Achievement> achievementRepository,
+            IAchievementService achievementService,
             IRepository<Game> gameRepository,
             IHttpContextAccessor httpContext)
         {
             _mapper = mapper;
-            _achievementRepo = achievementRepository;
+            _achievementService = achievementService;
             _gameRepo = gameRepository;
             _httpContext = httpContext;
         }
@@ -32,13 +33,18 @@ namespace HeffayPresentsAchievements.Services.GameService
         private Guid GetUserId()
         {
             if (_httpContext.HttpContext != null)
-                return Guid.Parse(_httpContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            {
+                var userId = _httpContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                return Guid.Parse(userId);
+            }
+                
             else
                 throw new ApplicationException("Unable to find HttpContext for request.");
         }
 
         public async Task<ServiceResponse<List<GetGameDto>>> GetAllGames()
         {
+            Console.WriteLine("Get all games");
             var response = new ServiceResponse<List<GetGameDto>>();
             
             try
@@ -112,7 +118,6 @@ namespace HeffayPresentsAchievements.Services.GameService
 
                 game.Id = Guid.NewGuid();
                 game.LastUpdated = DateTime.UtcNow;
-                //game.Users.Add(userRepository.GetById(GetUserId()));
                 
                 var rowsChanged = await _gameRepo.Add(game);
                 var newGame = await _gameRepo.Get(game.Id);

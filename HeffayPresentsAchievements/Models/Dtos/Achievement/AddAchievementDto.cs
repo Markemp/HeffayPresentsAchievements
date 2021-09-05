@@ -9,7 +9,6 @@ namespace HeffayPresentsAchievements.Dtos.Achievement
         int Points,
         bool IsIncrementalAchievement,
         bool IsDeleted,
-        AchievementType AchievementType,
-        Guid GameId
+        AchievementType AchievementType
     );
 }

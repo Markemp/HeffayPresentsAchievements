@@ -2,6 +2,7 @@
 using HeffayPresentsAchievements;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Models.Dtos.Game;
+using HeffayPresentsAchievements.Services.AchievementService;
 using HeffayPresentsAchievements.Services.GameService;
 using HeffayPresentsAchievements.Services.Repository;
 using Microsoft.AspNetCore.Http;
@@ -13,17 +14,18 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
+namespace HeffayPresentsAchievementsTests.UnitTests.ServicesTests
 {
     [TestClass]
     public class GameServiceTests
     {
         private IMapper? mapper;
-        private readonly Mock<IRepository<Achievement>> achievementRepo = new();
+        private readonly Mock<IAchievementService> achievementService = new();
         private readonly Mock<IRepository<Game>> gameRepo = new();
         private readonly Mock<IHttpContextAccessor> mockHttpContextAccessor = new();
         private Guid badGuid = new("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
-        private DefaultHttpContext context = new();
+        private Guid testUserId = new("e5e6095b-0aba-4b78-f99e-08d964b8ccd4");
+        private readonly DefaultHttpContext context = new();
 
         [TestInitialize]
         public void Initialize()
@@ -32,16 +34,20 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             var configuration = new MapperConfiguration(cfg => cfg.AddProfile(profile));
             mapper = new Mapper(configuration);
             ClaimsPrincipal user = new();
-            user.HasClaim(ClaimTypes.NameIdentifier, "name identifier");
+            var claimsIdentity = new ClaimsIdentity();
+            var claim = new Claim(ClaimTypes.NameIdentifier, testUserId.ToString());
+            claimsIdentity.AddClaim(claim);
+            user.AddIdentity(claimsIdentity);
             context.User = user;
         }
 
         [TestMethod]
-        public async Task GetAllGames_ShouldReturnAllGames()
+        public async Task GetAllGames_ShouldReturnAllGamesForUser()
         {
-            gameRepo.Setup(p => p.GetAll()).Returns(Seed()!);
+            gameRepo.Setup(p => p.GetAllForId(It.IsAny<Guid>())).Returns(SeedGames()!);
+            mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(context);
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             var actualServiceResponse = await service.GetAllGames();
 
             Assert.IsNotNull(actualServiceResponse.Data);
@@ -53,23 +59,24 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         [TestMethod]
         public async Task GetAllGames_NoGamesReturned()
         {
-            gameRepo.Setup(p => p.GetAll()).Returns(EmptyGamesList());
+            gameRepo.Setup(p => p.GetAllForId(It.IsAny<Guid>())).Returns(EmptyGamesList());
             mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(context);
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             var actualServiceResponse = await service.GetAllGames();
 
             Assert.IsNull(actualServiceResponse.Data);
-            Assert.IsFalse(actualServiceResponse.Success);
+            Assert.IsTrue(actualServiceResponse.Success);
             Assert.AreEqual("No games found.", actualServiceResponse.Message);
         }
 
         [TestMethod]
         public async Task GetAllGames_RepoUnavailable_FailedServiceResponse()
         {
-            gameRepo.Setup(p => p.GetAll()).Throws(new Exception("Test message"));
+            gameRepo.Setup(p => p.GetAllForId(It.IsAny<Guid>())).Throws(new Exception("Test message"));
+            mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(context);
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             var actualServiceResponse = await service.GetAllGames();
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -80,11 +87,10 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         [TestMethod]
         public async Task GetGameById_Successful()
         {
-            GetGameDto expectedAchievementDto = mapper!.Map<GetGameDto>(Seed().Result.ToList()[0]);
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(SeedGames().Result.FirstOrDefault()));
+            mockHttpContextAccessor.Setup(_ => _.HttpContext).Returns(context);
 
-            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
-
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
 
             var actualServiceResponse = await service.GetGameById(new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7"));
 
@@ -97,7 +103,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Game?>(null));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
 
             var actualServiceResponse = await service.GetGameById(badGuid);
 
@@ -111,7 +117,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Throws(new Exception("Test message"));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             var actualServiceResponse = await service.GetGameById(badGuid);
 
             Assert.IsNull(actualServiceResponse.Data);
@@ -123,9 +129,9 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         public async Task AddGame_Success()
         {
             gameRepo.Setup(p => p.Add(It.IsAny<Game>())).Returns(Task.FromResult(1));
-            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(SeedGames().Result.FirstOrDefault()));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
 
             var newGame = new AddGameDto("New Game", new Guid());
 
@@ -140,7 +146,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Add(It.IsAny<Game>())).Throws(new ArgumentNullException());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             AddGameDto? game = null;
 
             var actualServiceResponse = await service.AddGame(game!);
@@ -154,7 +160,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Add(It.IsAny<Game>())).Throws(new Exception());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             AddGameDto game = new("New Game", new Guid());
 
             var actualServiceResponse = await service.AddGame(game);
@@ -166,10 +172,10 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         [TestMethod]
         public async Task UpdateAchievement_Success()
         {
-            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(SeedGames().Result.FirstOrDefault()));
             gameRepo.Setup(p => p.Update(It.IsAny<Game>())).Returns(Task.FromResult(new Game()));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             UpdateGameDto updatedGame = new(new Guid(), "updated game name");
 
             var actualServiceResponse = await service.UpdateGame(updatedGame);
@@ -184,7 +190,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         {
             gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult<Game?>(null));
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             UpdateGameDto updatedGame = new(new Guid(), "updated game name");
 
             var actualServiceResponse = await service.UpdateGame(updatedGame);
@@ -197,10 +203,10 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         [TestMethod]
         public async Task UpdateGame_UpdateFailed()
         {
-            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(Seed().Result.FirstOrDefault()));
+            gameRepo.Setup(p => p.Get(It.IsAny<Guid>())).Returns(Task.FromResult(SeedGames().Result.FirstOrDefault()));
             gameRepo.Setup(p => p.Update(It.IsAny<Game>())).Throws(new Exception());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             UpdateGameDto updatedGame = new(new Guid(), "updated game name");
 
             var actualServiceResponse = await service.UpdateGame(updatedGame);
@@ -214,9 +220,9 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         public async Task DeleteGame_Success()
         {
             gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(1));
-            gameRepo.Setup(p => p.GetAll()).Returns(Seed());
+            gameRepo.Setup(p => p.GetAll()).Returns(SeedGames());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             var idToDelete = new Guid("6a3dbb1c-7b7b-41c4-9e84-410f17b644e7");
 
             var actualServiceResponse = await service.DeleteGame(idToDelete);
@@ -230,9 +236,9 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         public async Task DeleteAchievement_AchievementNotFound()
         {
             gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Returns(Task.FromResult(0));
-            gameRepo.Setup(p => p.GetAll()).Returns(Seed());
+            gameRepo.Setup(p => p.GetAll()).Returns(SeedGames());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             var idToDelete = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
             var actualServiceResponse = await service.DeleteGame(idToDelete);
@@ -246,9 +252,9 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         public async Task DeleteAchievement_ExceptionThrown()
         {
             gameRepo.Setup(p => p.Remove(It.IsAny<Guid>())).Throws(new Exception());
-            gameRepo.Setup(p => p.GetAll()).Returns(Seed());
+            gameRepo.Setup(p => p.GetAll()).Returns(SeedGames());
 
-            var service = new GameService(mapper!, achievementRepo.Object, gameRepo.Object, mockHttpContextAccessor.Object);
+            var service = new GameService(mapper!, achievementService.Object, gameRepo.Object, mockHttpContextAccessor.Object);
             var idToDelete = new Guid("baddbb1c-7b7b-41c4-9e84-410f17b64bad");
 
             var actualServiceResponse = await service.DeleteGame(idToDelete);
@@ -259,7 +265,7 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
         }
 
 
-        private async static Task<IEnumerable<Game?>> Seed()
+        private async static Task<IEnumerable<Game?>> SeedGames()
         {
             var games = await Task.Run(() => new List<Game?>
             {
@@ -290,6 +296,39 @@ namespace HeffayPresentsAchievementsTests.Unit_Tests.Service_Tests
             });
 
             return games;
+        }
+
+        private async static Task<IEnumerable<User?>> SeedUsers()
+        {
+            var users = await Task.Run(() => new List<User?>
+            {
+                new User
+                {
+                    Id = new Guid("e5e6095b-0aba-4b78-f99e-08d964b80001"),
+                    Email = "test1@example.com",
+                    Username = "test1",
+                    PasswordHash = new byte[] { 0x1, 0x2, 0x3, 0x4, 0x5 },
+                    PasswordSalt = new byte[] { 0x1, 0x2, 0x3, 0x4, 0x5 }
+                },
+                new User
+                {
+                    Id = new Guid("e5e6095b-0aba-4b78-f99e-08d964b80002"),
+                    Email = "test2@example.com",
+                    Username = "test2",
+                    PasswordHash = new byte[] { 0x1, 0x2, 0x3, 0x4, 0x5 },
+                    PasswordSalt = new byte[] { 0x1, 0x2, 0x3, 0x4, 0x5 }
+                },
+                new User
+                {
+                    Id = new Guid("e5e6095b-0aba-4b78-f99e-08d964b80003"),
+                    Email = "test3@example.com",
+                    Username = "test3",
+                    PasswordHash = new byte[] { 0x1, 0x2, 0x3, 0x4, 0x5 },
+                    PasswordSalt = new byte[] { 0x1, 0x2, 0x3, 0x4, 0x5 }
+                },
+            });
+
+            return users;
         }
 
         private async static Task<IEnumerable<Game?>> EmptyGamesList()

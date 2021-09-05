@@ -3,6 +3,7 @@ using HeffayPresentsAchievements;
 using HeffayPresentsAchievements.Data;
 using HeffayPresentsAchievements.Models;
 using HeffayPresentsAchievements.Models.Dtos.Game;
+using HeffayPresentsAchievements.Services.AchievementService;
 using HeffayPresentsAchievements.Services.GameService;
 using HeffayPresentsAchievements.Services.Repository;
 using Microsoft.AspNetCore.Http;
@@ -11,17 +12,21 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading.Tasks;
 
-namespace HeffayPresentsAchievementsTests.Integration_Tests
+namespace HeffayPresentsAchievementsTests.IntegrationTests
 {
     [TestClass]
     public class GameServiceIntegrationTests
     {
+        private IGameService? gameService; 
+        
         private DataContext? _context;
-        private Mapper? mapper;
-        private Repository<Achievement>? _achievementRepo;
-        private Repository<Game>? _gameRepo;
-        private DbContextOptions<DataContext>? options;
         private HttpContextAccessor? _httpContext;
+        private Mapper? mapper;
+
+        private IAchievementService? _achievementService;
+        private Repository<Game>? _gameRepo;
+        private readonly Repository<Achievement>? _achievementRepo;
+        private DbContextOptions<DataContext>? options;
 
         [TestInitialize]
         public void Initialize()
@@ -31,14 +36,18 @@ namespace HeffayPresentsAchievementsTests.Integration_Tests
                 .Options;
             _context = CreateContext(options);
 
-            _achievementRepo = new(_context);
             _gameRepo = new(_context);
+            
+            gameService = new GameService(mapper!, _achievementService!, _gameRepo!, _httpContext!);
 
             var mapperConfig = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<AutoMapperProfile>();
             });
             mapper = new(mapperConfig);
+
+            _achievementService = new AchievementService(mapper, _achievementRepo!);
+
             _httpContext = new();
         }
 
@@ -48,19 +57,17 @@ namespace HeffayPresentsAchievementsTests.Integration_Tests
             // Verify db empty, add an achievement, verify it exists
             var newGame = new AddGameDto("Game 01", new Guid());
 
-            var service = new GameService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
-
-            var initialResult = await service.GetAllGames();
+            var initialResult = await gameService!.GetAllGames();
             Assert.IsTrue(initialResult.Success);
             Assert.IsNull(initialResult.Data);
             Assert.AreEqual("No games found.", initialResult.Message);
 
-            var addResult = await service.AddGame(newGame);
+            var addResult = await gameService.AddGame(newGame);
             Assert.IsTrue(addResult.Success);
             Assert.AreEqual("Added 1 row (should be 1).", addResult.Message);
             Assert.AreEqual("Game 01", addResult.Data!.Name);
 
-            var checkResult = await service.GetAllGames();
+            var checkResult = await gameService.GetAllGames();
             Assert.IsTrue(checkResult.Success);
             Assert.IsNotNull(checkResult.Data);
             Assert.AreEqual(1, checkResult.Data!.Count);
@@ -74,10 +81,9 @@ namespace HeffayPresentsAchievementsTests.Integration_Tests
             var newGame1 = new AddGameDto("Game 01", new Guid());
             var newGame2 = new AddGameDto("Game 02", new Guid());
 
-            var service = new GameService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
 
-            var addResult = await service.AddGame(newGame1);
-            var addResult2 = await service.AddGame(newGame2);
+            var addResult = await gameService!.AddGame(newGame1);
+            var addResult2 = await gameService.AddGame(newGame2);
             Assert.IsTrue(addResult.Success);
             Assert.IsTrue(addResult2.Success);
             Assert.AreEqual("Added 1 row (should be 1).", addResult.Message);
@@ -86,8 +92,8 @@ namespace HeffayPresentsAchievementsTests.Integration_Tests
             var id1 = addResult2.Data!.Id;
             var id2 = addResult2.Data!.Id;
 
-            var checkResult = await service.GetGameById(id1);
-            var checkResult2 = await service.GetGameById(id2);
+            var checkResult = await gameService.GetGameById(id1);
+            var checkResult2 = await gameService.GetGameById(id2);
 
             Assert.AreEqual(id1, checkResult.Data!.Id);
             Assert.AreEqual(id2, checkResult2.Data!.Id);
@@ -99,9 +105,7 @@ namespace HeffayPresentsAchievementsTests.Integration_Tests
             // Verify db empty, add an achievement, verify it exists
             var newGame = new AddGameDto("Update Game Test",new Guid());
 
-            var service = new GameService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
-
-            var addResult = await service.AddGame(newGame);
+            var addResult = await gameService!.AddGame(newGame);
             Assert.IsTrue(addResult.Success);
 
             var game = addResult.Data!;
@@ -109,19 +113,19 @@ namespace HeffayPresentsAchievementsTests.Integration_Tests
             var updateGame = new UpdateGameDto(game.Id, game.Name);
 
             // No values changed
-            var updateResult = await service.UpdateGame(updateGame);
+            var updateResult = await gameService.UpdateGame(updateGame);
             Assert.IsTrue(updateResult.Success);
             Assert.AreEqual("Update Game Test", updateResult.Data!.Name);
 
             // Values changed
             var updateGame2 = new UpdateGameDto(game.Id, "Updated Name");
 
-            updateResult = await service.UpdateGame(updateGame2);
+            updateResult = await gameService.UpdateGame(updateGame2);
             Assert.AreEqual("Updated Name", updateResult.Data!.Name);
 
             // Values changed again
             var updateGame3 = new UpdateGameDto(game.Id, "New Updated Name");
-            var updateResult2 = await service.UpdateGame(updateGame3);
+            var updateResult2 = await gameService.UpdateGame(updateGame3);
 
             Assert.AreEqual("New Updated Name", updateResult2.Data!.Name);
             Assert.AreEqual(updateGame.Id, updateResult2.Data.Id);
@@ -133,20 +137,18 @@ namespace HeffayPresentsAchievementsTests.Integration_Tests
             // Verify db empty, add an achievement, verify it exists
             var newGame = new AddGameDto("Delete Game Test", new Guid());
 
-            var service = new GameService(mapper!, _achievementRepo!, _gameRepo!, _httpContext!);
-
-            var addResult = await service.AddGame(newGame);
+            var addResult = await gameService!.AddGame(newGame);
 
             // Delete non-existant achievement
-            var deleteResult = await service.DeleteGame(Guid.Empty);
+            var deleteResult = await gameService.DeleteGame(Guid.Empty);
             Assert.IsFalse(deleteResult.Success);
             Assert.AreEqual("Game not found.", deleteResult.Message);
 
             // Delete added achievement
-            var deleteResult2 = await service.DeleteGame(addResult.Data!.Id);
+            var deleteResult2 = await gameService.DeleteGame(addResult.Data!.Id);
             Assert.IsTrue(deleteResult2.Success);
             Assert.IsTrue(deleteResult2.Message!.StartsWith("Removed 1 rows."));
-            var checkAchievement = await service.GetGameById(addResult.Data!.Id);
+            var checkAchievement = await gameService.GetGameById(addResult.Data!.Id);
             Assert.IsFalse(checkAchievement.Success);
         }
 
